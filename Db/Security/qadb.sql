@@ -1,0 +1,4 @@
+﻿CREATE LOGIN [qadb] WITH PASSWORD = 'Password123';
+GO
+CREATE USER [qadb] FOR LOGIN [qadb];
+GO

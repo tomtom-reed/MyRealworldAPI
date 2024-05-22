@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="e3127263-5e85-4bf5-9d07-50b50d852e4d" ChangeDateTime="05/13/2024 21:48:07">
+    <Property Name="ElementName" Value="[dbo].[Articles].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Articles]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="slug" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="63ae5792-f641-4301-aa65-5be3200fcd2d" ChangeDateTime="05/13/2024 21:49:45">
+    <Property Name="ElementName" Value="[dbo].[Tags].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Tags]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="slug" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="43d50ba9-cb85-46ac-950a-2137613ee32e" ChangeDateTime="05/13/2024 21:51:07">
+    <Property Name="ElementName" Value="[dbo].[Favorites].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Favorites]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="userId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b66ee9c1-37bd-432c-9a2f-73a315015fca" ChangeDateTime="05/13/2024 21:54:44">
+    <Property Name="ElementName" Value="[dbo].[Favorites].[followedUserId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Favorites]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="followedArticle" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="d556c64b-b079-4363-b0a1-6b108315f3b7" ChangeDateTime="05/13/2024 21:54:48">
+    <Property Name="ElementName" Value="[dbo].[Favorites].[followedArticle]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Favorites]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="followedSlug" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="51d8a934-194e-4737-ae57-d8fe93f5a1ac" ChangeDateTime="05/13/2024 21:55:12">
+    <Property Name="ElementName" Value="[dbo].[Favorites].[followedSlug]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Favorites]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="favoritedSlug" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b3614fd6-24db-4e8d-abd7-ab16c5d85f8a" ChangeDateTime="05/16/2024 19:34:14">
+    <Property Name="ElementName" Value="[dbo].[usr_login]" />
+    <Property Name="ElementType" Value="SqlProcedure" />
+    <Property Name="ParentElementName" Value="[dbo]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[get_usr_login_details]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="8f43a7fa-5f1e-48fa-8401-27c5a2846159" ChangeDateTime="05/16/2024 21:02:25">
+    <Property Name="ElementName" Value="[dbo].[Users].[password]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Users]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="pwd" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="a737cb75-ec00-47c1-9733-c32a42d666f4" ChangeDateTime="05/16/2024 21:02:27">
+    <Property Name="ElementName" Value="[dbo].[Users].[image]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Users]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="img" />
+  </Operation>
+</Operations>
