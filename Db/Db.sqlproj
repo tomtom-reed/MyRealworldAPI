@@ -82,5 +82,18 @@
     <Build Include="Security\qadb.sql" />
     <Build Include="Security\Permissions.sql" />
     <Build Include="dbo\Stored Procedures\article_create.sql" />
+    <Build Include="dbo\Stored Procedures\profile_follow.sql" />
+    <Build Include="dbo\Stored Procedures\profile_unfollow.sql" />
+    <Build Include="dbo\Stored Procedures\profile_get.sql" />
+    <Build Include="dbo\Stored Procedures\get_all_tags.sql" />
+    <Build Include="dbo\Stored Procedures\comment_get.sql" />
+    <Build Include="dbo\Stored Procedures\comment_create.sql" />
+    <Build Include="dbo\Tables\ArticleComments.sql" />
+    <Build Include="dbo\Stored Procedures\comment_delete.sql" />
+    <Build Include="dbo\Stored Procedures\article_get_filtered.sql" />
+    <Build Include="dbo\Stored Procedures\article_update.sql" />
+    <Build Include="dbo\Stored Procedures\article_delete.sql" />
+    <Build Include="dbo\Stored Procedures\favorite_create.sql" />
+    <Build Include="dbo\Stored Procedures\favorite_delete.sql" />
   </ItemGroup>
 </Project>

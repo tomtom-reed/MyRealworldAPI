@@ -20,7 +20,7 @@ namespace Contracts.Communicator.Response
         public int ErrorCode { get; set; }
 
         [DataMember]
-        public string ErrorMessage {  get; set; }
+        public string ErrorMessage { get; set; } = "";
 
     }
 }

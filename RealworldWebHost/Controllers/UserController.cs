@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using Contracts.Communicator.Response;
 using Contracts.Communicator.Request;
 using Contracts.Validators;
-using NSec.Cryptography;
 using RealworldWebHost.DataAccess;
 using RealworldWebHost.Models;
 using RealworldWebHost.Utilities;
@@ -77,7 +74,7 @@ namespace RealworldWebHost.Controllers
                 return StatusCode(400, response);
             }
             
-            UserDetails deets = da.GetUserDetails(body.Login.Email);
+            UserDetails deets = da.GetUserDetailsByEmail(body.Login.Email);
             if (!String.IsNullOrEmpty(deets.ErrorMsg))
             {
                 string msg = "WebHost.LoginUser DA failure: " + deets.ErrorMsg;
@@ -111,7 +108,7 @@ namespace RealworldWebHost.Controllers
 
         private UserDetailsResponse GetUserDetails(string email)
         {
-            UserDetails deets = da.GetUserDetails(email);
+            UserDetails deets = da.GetUserDetailsByEmail(email);
             if (!String.IsNullOrEmpty(deets.ErrorMsg))
             {
                 Console.Write("GetUserDetails Error: " + deets.ErrorMsg);

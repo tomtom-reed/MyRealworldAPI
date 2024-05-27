@@ -16,7 +16,9 @@ namespace RealworldWebHost.DataAccess
     public interface IUserDA
     {
         bool CreateUser(String username, string email, string password);
-        UserDetails GetUserDetails(string email);
+        UserDetails GetUserDetailsByEmail(string email);
+        UserDetails GetUserDetailsByUsername(string username);
+        UserDetails GetUserDetailsById(int id);
         bool UpdateUserDetails(UserUpdateContract req);
     }
     public class UserDA : IUserDA
@@ -94,10 +96,34 @@ namespace RealworldWebHost.DataAccess
             return false;
         }
 
-        public UserDetails GetUserDetails(string email)
+        private UserDetails ReaderToUserDetails(SqlDataReader reader)
+        {
+            UserDetails usr = new UserDetails();
+            usr.Id = Convert.ToInt32(reader["Id"]);
+
+            string? un = Convert.ToString(reader["username"]);
+            usr.UserName = un == null ? "" : un;
+
+            byte[] emc = (byte[])reader["email_crypt"];
+            usr.Email = emc == null ? "" : secUtils.Decrypt(emc);
+
+            usr.PasswordHash = (byte[])reader["pwd"];
+
+            string? bio = Convert.ToString(reader["bio"]);
+            usr.Bio = bio == null ? "" : bio;
+
+            string? img = Convert.ToString(reader["img"]);
+            usr.Img = img == null ? "" : img;
+
+            usr.CreatedAt = Convert.ToDateTime(reader["createdAt"]);
+
+            usr.UpdatedAt = Convert.ToDateTime(reader["updatedAt"]);
+            return usr;
+        }
+
+        public UserDetails GetUserDetailsByEmail(string email)
         {
             byte[] emailhash = secUtils.HashSha256(email);
-            UserDetails usr = new UserDetails();
             try
             {
                 using (SqlConnection connection = new SqlConnection(this.ConnectionString))
@@ -106,36 +132,13 @@ namespace RealworldWebHost.DataAccess
                     using (SqlCommand cmd = new SqlCommand(PROC_USR_DETAILS, connection) { CommandType = System.Data.CommandType.StoredProcedure })
                     {
                         cmd.Parameters.Add(new SqlParameter("@email", emailhash));
+                        cmd.Parameters.Add(new SqlParameter("@username", null));
+                        cmd.Parameters.Add(new SqlParameter("@userid", null));
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            if (!reader.HasRows)
-                            {
-                                usr.ErrorMsg = "No User Found";
-                                return usr;
-                            }
                             if (reader.Read())
                             {
-                                //string status = reader["StatusMsg"];
-                                //status = Convert.ToString(reader["StatusMsg"]);
-                                usr.Id = Convert.ToInt32(reader["Id"]);
-
-                                string? un = Convert.ToString(reader["username"]);
-                                usr.UserName = un == null ? "" : un;
-
-                                byte[] emc = (byte[])reader["email_crypt"];
-                                usr.Email = emc == null ? "" : secUtils.Decrypt(emc);
-
-                                usr.PasswordHash = (byte[])reader["pwd"];
-
-                                string? bio = Convert.ToString(reader["bio"]);
-                                usr.Bio = bio == null ? "" : bio;
-
-                                string? img = Convert.ToString(reader["img"]);
-                                usr.Img = img == null ? "" : img;
-
-                                usr.CreatedAt = Convert.ToDateTime(reader["createdAt"]);
-                                
-                                usr.UpdatedAt = Convert.ToDateTime(reader["updatedAt"]);
+                                return ReaderToUserDetails(reader);
                             }
                             reader.Close();
                         }
@@ -144,7 +147,65 @@ namespace RealworldWebHost.DataAccess
             } catch (Exception ex) {
                 Console.WriteLine(ex.Message);
             }
-            return usr;
+            return null;
+        }
+        public UserDetails GetUserDetailsByUsername(string username)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+                {
+                    connection.Open();
+                    using (SqlCommand cmd = new SqlCommand(PROC_USR_DETAILS, connection) { CommandType = System.Data.CommandType.StoredProcedure })
+                    {
+                        cmd.Parameters.Add(new SqlParameter("@email", null));
+                        cmd.Parameters.Add(new SqlParameter("@username", username));
+                        cmd.Parameters.Add(new SqlParameter("@userid", null));
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return ReaderToUserDetails(reader);
+                            }
+                            reader.Close();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
+        }
+        public UserDetails GetUserDetailsById(int id)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+                {
+                    connection.Open();
+                    using (SqlCommand cmd = new SqlCommand(PROC_USR_DETAILS, connection) { CommandType = System.Data.CommandType.StoredProcedure })
+                    {
+                        cmd.Parameters.Add(new SqlParameter("@email", null));
+                        cmd.Parameters.Add(new SqlParameter("@username", null));
+                        cmd.Parameters.Add(new SqlParameter("@userid", id));
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return ReaderToUserDetails(reader);
+                            }
+                            reader.Close();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
 
         public bool UpdateUserDetails(UserUpdateContract req)

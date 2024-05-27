@@ -48,5 +48,18 @@ namespace Contracts.Models
 
         public static readonly ErrorDetails Err_PasswordMissing = new ErrorDetails(321, "Password is required");
         public static readonly ErrorDetails Err_PasswordPolicy = new ErrorDetails(322, "Password does not fit policy");
+
+        public static readonly ErrorDetails Err_ArticleSlug = new ErrorDetails(409, "Invalid Article Slug");
+        public static readonly ErrorDetails Err_ArticleAuthorId = new ErrorDetails(410, "Invalid Article Author");
+        public static readonly ErrorDetails Err_ArticleTitle = new ErrorDetails(411, "Invalid Article Title");
+        public static readonly ErrorDetails Err_ArticleDescription = new ErrorDetails(412, "Invalid Article Description");
+        public static readonly ErrorDetails Err_ArticleBody = new ErrorDetails(413, "Invalid Article Body");
+        public static readonly ErrorDetails Err_ArticleTags = new ErrorDetails(414, "Invalid Article Tags");
+        public static readonly ErrorDetails Err_ArticleGet_Limit = new ErrorDetails(415, "Invalid Article Get Limit");
+        public static readonly ErrorDetails Err_ArticleGet_Offset = new ErrorDetails(416, "Invalid Article Get Offset");
+
+        public static readonly ErrorDetails Err_CommentAuthorId = new ErrorDetails(501, "Invalid comment author ID");
+        public static readonly ErrorDetails Err_CommentId = new ErrorDetails(502, "Invalid comment ID");
+        public static readonly ErrorDetails Err_CommentBody = new ErrorDetails(503, "Invalid comment body");
     }
 }

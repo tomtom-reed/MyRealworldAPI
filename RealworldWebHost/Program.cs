@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using RealworldWebHost.DataAccess;
+using RealworldWebHost.Utilities;
 
 namespace RealworldWebHost
 {
@@ -64,9 +65,15 @@ namespace RealworldWebHost
             /* 
              * Singleton Setup 
              */
-
+            builder.Services.AddSingleton<ISecUtils>(new SecUtils(aes_key));
+            builder.Services.AddSingleton<IArticleDA>(s =>
+            {
+                var sec = (ISecUtils)s.GetRequiredService(typeof(ISecUtils));
+                return new ArticleDA(sec, scsbuilder.ConnectionString);
+            });
+            builder.Services.AddSingleton<ICommentDA>(new CommentDA(scsbuilder.ConnectionString));
+            builder.Services.AddSingleton<IProfileDA>(new ProfileDA(scsbuilder.ConnectionString));
             builder.Services.AddSingleton<IUserDA>(new UserDA(scsbuilder.ConnectionString));
-            builder.Services.AddSingleton<RealworldWebHost.Utilities.ISecUtils>(new RealworldWebHost.Utilities.SecUtils(aes_key));
 
 
             /*
