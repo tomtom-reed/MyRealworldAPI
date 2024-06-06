@@ -28,19 +28,20 @@ namespace RealworldWebHost.Controllers
             if (!validator.Validate())
             {
                 Console.WriteLine("WebHost.GetProfile validation failure: " + validator.GetError().ToString());
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = validator.GetError().Message;
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = validator.GetError().Message;
                 return new ObjectResult(resp);
             }
             var profile = da.GetProfile(body.Profile.FollowedUsername, body.Profile.UserId);
             if (profile == null)
             {
                 Console.WriteLine("Call to WebHost.GetProfile failed at DA");
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = "Internal Server Error";
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
             resp.Profile = profile;
+            resp.Error.ErrorCode = CALLER_ERR_CD.SUCCESS;
             return new ObjectResult(resp);
         }
 
@@ -54,16 +55,16 @@ namespace RealworldWebHost.Controllers
             if (!validator.Validate())
             {
                 Console.WriteLine("WebHost.Follow validation failure: " + validator.GetError().ToString());
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = validator.GetError().Message;
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
             bool success = da.Follow(body.Contract.UserId, body.Contract.FollowedUsername);
             if (!success)
             {
                 Console.WriteLine("Call to WebHost.Follow failed at DA");
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = "Internal Server Error";
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
 
@@ -71,12 +72,12 @@ namespace RealworldWebHost.Controllers
             if (r == null)
             {
                 Console.WriteLine("Call to WebHost.Follow failed at DA.GetProfile");
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = "Internal Server Error";
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
 
-            resp.Error.ID = CALLER_ERR_CD.SUCCESS;
+            resp.Error.ErrorCode = CALLER_ERR_CD.SUCCESS;
             resp.Profile = r;
             return new ObjectResult(resp);
         }
@@ -91,16 +92,16 @@ namespace RealworldWebHost.Controllers
             if (!validator.Validate())
             {
                 Console.WriteLine("WebHost.Unfollow validation failure: " + validator.GetError().ToString());
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = validator.GetError().Message;
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
             bool success = da.StopFollowing(body.Contract.UserId, body.Contract.FollowedUsername);
             if (!success)
             {
                 Console.WriteLine("Call to WebHost.Unfollow failed at DA");
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = "Internal Server Error";
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
 
@@ -108,12 +109,12 @@ namespace RealworldWebHost.Controllers
             if (r == null)
             {
                 Console.WriteLine("Call to WebHost.Unfollow failed at DA.GetProfile");
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = "Internal Server Error";
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
 
-            resp.Error.ID = CALLER_ERR_CD.SUCCESS;
+            resp.Error.ErrorCode = CALLER_ERR_CD.SUCCESS;
             resp.Profile = r;
             return new ObjectResult(resp);
         }

@@ -9,38 +9,37 @@ using System.Threading.Tasks;
 
 namespace Contracts.Validators
 {
-    public class CommentDeleteValidator : ValidatorInterface
+    public class ArticleDeleteValidator
     {
-        private CommentDeleteContract comment;
         private ErrorDetails error;
-        public CommentDeleteValidator(CommentDeleteContract comment)
+        private ArticleDeleteContract contract;
+
+        public ArticleDeleteValidator(ArticleDeleteContract contract)
         {
-            this.comment = comment;
             this.error = ErrorTypes.Incomplete;
+            this.contract = contract;
         }
 
         public bool Validate()
         {
-            if (comment.Equals(null))
+            if (this.contract == null)
             {
                 this.error = ErrorTypes.Err_BadRequest;
                 return false;
             }
-            if (comment.AuthorId <= 0)
+
+            if (this.contract.AuthorId <= 0)
             {
-                this.error = ErrorTypes.Err_CommentAuthorId;
+                this.error = ErrorTypes.Err_ArticleAuthorId;
                 return false;
             }
-            if (comment.CommentId == null || comment.CommentId.Value <= 0)
-            {
-                this.error = ErrorTypes.Err_CommentId;
-                return false;
-            }
-            if (comment.Slug == null || comment.Slug.Length != ArticlePolicy.SLUG_LENGTH)
+
+            if (this.contract.Slug == null || this.contract.Slug.Length != ArticlePolicy.SLUG_LENGTH)
             {
                 this.error = ErrorTypes.Err_ArticleSlug;
                 return false;
             }
+
             this.error = ErrorTypes.Valid;
             return true;
         }

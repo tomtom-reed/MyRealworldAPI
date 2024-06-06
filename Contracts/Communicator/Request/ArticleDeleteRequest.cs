@@ -9,29 +9,26 @@ using System.Threading.Tasks;
 namespace Contracts.Communicator.Request
 {
     [DataContract]
-    public class CommentDeleteRequest
+    public class ArticleDeleteRequest
     {
-        public CommentDeleteRequest()
+        public ArticleDeleteRequest()
         {
-            this.Comment = new CommentDeleteContract();
+            this.Contract = new ArticleDeleteContract();
             this.Audit = new AuditContract();
         }
 
         [DataMember]
-        public CommentDeleteContract Comment { get; set; }
+        public AuditContract Audit { get; set; }
 
         [DataMember]
-        public AuditContract Audit { get; set; }
+        public ArticleDeleteContract Contract { get; set; }
     }
 
     [DataContract]
-    public class CommentDeleteContract
+    public class ArticleDeleteContract
     {
         [DataMember]
         public string Slug { get; set; } = "";
-
-        [DataMember]
-        public int? CommentId { get; set; }
 
         [DataMember]
         public int AuthorId { get; set; }

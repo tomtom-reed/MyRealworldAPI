@@ -28,7 +28,7 @@ namespace Contracts.Communicator.Request
     public class UserUpdateContract
     {
         [DataMember]
-        public string UserCurrentEmail { get; set; }
+        public int UserId { get; set; }
 
         [DataMember]
         public string? Username { get; set; }

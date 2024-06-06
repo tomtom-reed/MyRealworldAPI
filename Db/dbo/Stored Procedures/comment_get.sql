@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[comment_get]
-	@slug varchar(50) not null,
+	@slug varchar(50),
 	@commentId int null,
 	@userid int null
 AS
@@ -18,8 +18,8 @@ AS
 		END as following
 	FROM Articles A
 		INNER JOIN Comments C ON A.slug = C.articleSlug
-		INNER JOIN Users U ON C.authorId = U.id
-		INNER JOIN ArticleComments AC ON A.slug = AC.articleSlug AND C.id = AC.commentId
+		INNER JOIN Users U ON C.authorId = U.Id
+		INNER JOIN ArticleComments AC ON A.slug = AC.articleSlug AND C.Id = AC.commentId
 	WHERE A.slug = @slug
 		AND (@commentId IS NULL OR AC.Id = @commentId)
 	ORDER BY AC.Id ASC

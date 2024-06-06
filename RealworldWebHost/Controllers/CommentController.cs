@@ -56,7 +56,7 @@ namespace RealworldWebHost.Controllers
                 resp.Error.ErrorMessage = validator.GetError().Message;
                 return new ObjectResult(resp);
             }
-            bool success = da.DeleteComment(body.Comment.Slug, body.Comment.CommentId, body.Comment.AuthorId);
+            bool success = da.DeleteComment(body.Comment.Slug, body.Comment.CommentId.Value, body.Comment.AuthorId); // validator confirms not null
             if (!success)
             {
                 Console.WriteLine("Call to WebHost.DeleteComment failed at DA");
@@ -79,16 +79,16 @@ namespace RealworldWebHost.Controllers
             if (!validator.Validate())
             {
                 Console.WriteLine("WebHost.GetComment validation failure: " + validator.GetError().ToString());
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = validator.GetError().Message;
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = validator.GetError().Message;
                 return new ObjectResult(resp);
             }
             List<CommentGetResponseContract> comments = da.GetByArticle(body.Comment.Slug, body.Comment.FollowerId);
             if (comments == null) // length can be zero
             {
                 Console.WriteLine("Call to WebHost.GetComment failed at DA");
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = "Internal Server Error";
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
             resp.Comments = comments;
@@ -105,16 +105,16 @@ namespace RealworldWebHost.Controllers
             if (!validator.Validate())
             {
                 Console.WriteLine("WebHost.GetComment validation failure: " + validator.GetError().ToString());
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = validator.GetError().Message;
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = validator.GetError().Message;
                 return new ObjectResult(resp);
             }
             var c = da.GetById(body.Comment.Slug, (int)body.Comment.CommentId, body.Comment.FollowerId);
             if (c == null || c.Id < 0)
             {
                 Console.WriteLine("Call to WebHost.GetComment failed at DA");
-                resp.Error.ID = CALLER_ERR_CD.GENERIC_ERROR;
-                resp.Error.Message = "Internal Server Error";
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
             resp.Comment = c;

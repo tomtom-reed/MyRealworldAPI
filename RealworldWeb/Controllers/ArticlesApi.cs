@@ -18,16 +18,50 @@ using RealworldApi.Web.Security;
 using RealworldApi.Web.Models;
 using RealworldApi.Web.Attributes;
 using System.Text.Json;
-using Swashbuckle.AspNetCore.Annotations;
+using RealworldWeb.Caller;
+using Contracts.Communicator.Request;
+using Contracts.Validators;
+using System.Security.Claims;
+using Contracts.Communicator.Response;
 
 namespace RealworldApi.Web.Controllers
-{ 
+{
+
+
     /// <summary>
     /// 
     /// </summary>
     [ApiController]
     public class ArticlesApiController : ControllerBase
-    { 
+    {
+        private readonly ITokenUtils tokenizer;
+        private readonly IArticleCaller caller;
+
+        public ArticlesApiController(ITokenUtils tokenizer, IArticleCaller caller)
+        {
+            this.tokenizer = tokenizer;
+            this.caller = caller;
+        }
+
+        public static Article ArticleContractToArticleResponse(ArticleGetResponseContract body) // TODO make this a helper
+        {
+            Article response = new Article();
+            response.Slug = body.Slug;
+            response.Title = body.Title;
+            response.Body = body.Body;
+            response.Description = body.Description;
+            response.Favorited = body.Favorited;
+            response.UpdatedAt = body.UpdatedAt;
+            response.CreatedAt = body.CreatedAt;
+            response.TagList = body.Tags;
+            response.Author = new Profile();
+            response.Author.Username = body.Author.Username;
+            response.Author.Bio = body.Author.Bio;
+            response.Author.Image = body.Author.Image;
+            response.Author.Following = body.Author.Following;
+            return response;
+        }
+
         /// <summary>
         /// Create an article
         /// </summary>
@@ -43,24 +77,32 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("CreateArticle")]
         [SwaggerResponse(statusCode: 201, type: typeof(InlineResponse201), description: "Single article")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult CreateArticle([FromBody]Object body)
-        { 
-            //TODO: Uncomment the next line to return response 201 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(201, default(InlineResponse201));
+        public virtual async Task<IActionResult> CreateArticle([FromBody]NewArticle body)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication must have failed");
+                return StatusCode(401);
+            }
+            var article = new ArticleCreateContract();
+            article.Title = body.Title;
+            article.Body = body.Body;
+            article.AuthorId = (int)userid;
 
-            //TODO: Uncomment the next line to return response 401 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(401);
-
-            //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(422, default(GenericErrorModel));
-            string exampleJson = null;
-            exampleJson = "{\n  \"article\" : {\n    \"tagList\" : [ \"tagList\", \"tagList\" ],\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"description\" : \"description\",\n    \"title\" : \"title\",\n    \"body\" : \"body\",\n    \"favoritesCount\" : 0,\n    \"slug\" : \"slug\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"favorited\" : true\n  }\n}";
-            
-                        var example = exampleJson != null
-                        ? JsonSerializer.Deserialize<InlineResponse201>(exampleJson)
-                        //? JsonSerializer.Deserialize<InlineResponse201>(exampleJson)
-                        : default(InlineResponse201);            //TODO: Change the data returned
-            return new ObjectResult(example);
+            var validator = new CreateArticleValidator(article);
+            if (!validator.Validate())
+            {
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            var aresp = await caller.CreateArticle(article);
+            if (aresp == null)
+            {
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            InlineResponse201 resp = new InlineResponse201();
+            resp.Article = ArticleContractToArticleResponse(aresp);
+            return StatusCode(201, resp);
         }
 
         /// <summary>
@@ -77,8 +119,30 @@ namespace RealworldApi.Web.Controllers
         [ValidateModelState]
         [SwaggerOperation("DeleteArticle")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult DeleteArticle([FromRoute][Required]string slug)
+        public virtual async Task<IActionResult> DeleteArticle([FromRoute][Required]string slug)
         { 
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication must have failed");
+                return StatusCode(401);
+            }
+            ArticleDeleteContract contract = new ArticleDeleteContract();
+            contract.Slug = slug;
+            contract.AuthorId = userid.Value;
+            ArticleDeleteValidator validator = new ArticleDeleteValidator(contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("WebHost.DeleteArticle validation failure: " + validator.GetError().ToString());
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            var resp = await caller.DeleteArticle(contract);
+            if (!resp)
+            {
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            return StatusCode(200);
+
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
 
@@ -87,8 +151,6 @@ namespace RealworldApi.Web.Controllers
 
             //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(422, default(GenericErrorModel));
-
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -104,20 +166,23 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("GetArticle")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse201), description: "Single article")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult GetArticle([FromRoute][Required]string slug)
-        { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(InlineResponse201));
-
-            //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(422, default(GenericErrorModel));
-            string exampleJson = null;
-            exampleJson = "{\n  \"article\" : {\n    \"tagList\" : [ \"tagList\", \"tagList\" ],\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"description\" : \"description\",\n    \"title\" : \"title\",\n    \"body\" : \"body\",\n    \"favoritesCount\" : 0,\n    \"slug\" : \"slug\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"favorited\" : true\n  }\n}";
-            
-                        var example = exampleJson != null
-                        ? JsonSerializer.Deserialize<InlineResponse201>(exampleJson)
-                        : default(InlineResponse201);            //TODO: Change the data returned
-            return new ObjectResult(example);
+        public virtual async Task<IActionResult> GetArticle([FromRoute][Required]string slug)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication is optional");
+            }
+            // TODO validation 
+            ArticleGetResponseContract contract = await caller.GetArticle(slug, userid);
+            if (contract == null)
+            {
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            InlineResponse201 resp = new InlineResponse201();
+            resp.Article = new Article();
+            resp.Article = ArticleContractToArticleResponse(contract);
+            return StatusCode(201, resp);
         }
 
         /// <summary>
@@ -138,8 +203,50 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("GetArticles")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse2002), description: "Multiple articles")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult GetArticles([FromQuery]string tag, [FromQuery]string author, [FromQuery]string favorited, [FromQuery]int? offset, [FromQuery]int? limit)
-        { 
+        public virtual async Task<IActionResult> GetArticles([FromQuery]string tag, [FromQuery]string author, [FromQuery]string favorited, [FromQuery]int? offset, [FromQuery]int? limit)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication is optional");
+            }
+            ArticleGetContract contract = new ArticleGetContract();
+            if (!string.IsNullOrEmpty(tag))
+            {
+                contract.Tags = new List<string> { tag };
+            }
+            contract.Authorname = author;
+            contract.FollowedByName = favorited; // Priority? 
+            contract.Offset = offset; // TODO defaults? 
+            contract.Limit = limit; // TODO defaults?
+            contract.FollowedById = userid;
+            var validator = new ArticleGetMultipleValidator(contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("WebHost.GetArticles validation failure: " + validator.GetError().ToString());
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            var resps = await caller.GetArticlesFiltered(contract);
+
+            if (resps == null)
+            {
+                Console.WriteLine("Response is null");
+                return StatusCode(422, default(GenericErrorModel));
+            }
+
+            InlineResponse2002 articlesResponse = new InlineResponse2002();
+
+            foreach (var r in resps)
+            {
+                articlesResponse.Articles.Add(ArticleContractToArticleResponse(r));
+            }
+            articlesResponse.ArticlesCount = articlesResponse.Articles.Count;
+            return StatusCode(200, articlesResponse);
+            
+            //caller.GetArticlesByFeed
+            //caller.GetArticlesFiltered
+
+
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(InlineResponse2002));
 
@@ -148,13 +255,6 @@ namespace RealworldApi.Web.Controllers
 
             //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(422, default(GenericErrorModel));
-            string exampleJson = null;
-            exampleJson = "{\n  \"articlesCount\" : 6,\n  \"articles\" : [ {\n    \"tagList\" : [ \"tagList\", \"tagList\" ],\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"description\" : \"description\",\n    \"title\" : \"title\",\n    \"body\" : \"body\",\n    \"favoritesCount\" : 0,\n    \"slug\" : \"slug\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"favorited\" : true\n  }, {\n    \"tagList\" : [ \"tagList\", \"tagList\" ],\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"description\" : \"description\",\n    \"title\" : \"title\",\n    \"body\" : \"body\",\n    \"favoritesCount\" : 0,\n    \"slug\" : \"slug\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"favorited\" : true\n  } ]\n}";
-            
-                        var example = exampleJson != null
-                        ? JsonSerializer.Deserialize<InlineResponse2002>(exampleJson)
-                        : default(InlineResponse2002);            //TODO: Change the data returned
-            return new ObjectResult(example);
         }
 
         /// <summary>
@@ -173,8 +273,29 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("GetArticlesFeed")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse2002), description: "Multiple articles")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult GetArticlesFeed([FromQuery]int? offset, [FromQuery]int? limit)
-        { 
+        public virtual async Task<IActionResult> GetArticlesFeed([FromQuery]int? offset, [FromQuery]int? limit)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication is optional");
+            }
+            var contract = new ArticleGetContract { FollowedById = userid, Offset = offset, Limit = limit };
+            var validator = new ArticleGetMultipleValidator(contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("WebHost.GetArticles validation failure: " + validator.GetError().ToString());
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            var resps = await caller.GetArticlesByFeed(contract);
+            InlineResponse2002 articlesResponse = new InlineResponse2002();
+
+            foreach (var r in resps)
+            {
+                articlesResponse.Articles.Add(ArticleContractToArticleResponse(r));
+            }
+            articlesResponse.ArticlesCount = articlesResponse.Articles.Count;
+            return StatusCode(200, articlesResponse);
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(InlineResponse2002));
 
@@ -183,13 +304,6 @@ namespace RealworldApi.Web.Controllers
 
             //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(422, default(GenericErrorModel));
-            string exampleJson = null;
-            exampleJson = "{\n  \"articlesCount\" : 6,\n  \"articles\" : [ {\n    \"tagList\" : [ \"tagList\", \"tagList\" ],\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"description\" : \"description\",\n    \"title\" : \"title\",\n    \"body\" : \"body\",\n    \"favoritesCount\" : 0,\n    \"slug\" : \"slug\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"favorited\" : true\n  }, {\n    \"tagList\" : [ \"tagList\", \"tagList\" ],\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"description\" : \"description\",\n    \"title\" : \"title\",\n    \"body\" : \"body\",\n    \"favoritesCount\" : 0,\n    \"slug\" : \"slug\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"favorited\" : true\n  } ]\n}";
-            
-                        var example = exampleJson != null
-                        ? JsonSerializer.Deserialize<InlineResponse2002>(exampleJson)
-                        : default(InlineResponse2002);            //TODO: Change the data returned
-            return new ObjectResult(example);
         }
 
         /// <summary>
@@ -208,8 +322,38 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("UpdateArticle")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse201), description: "Single article")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult UpdateArticle([FromBody]Object body, [FromRoute][Required]string slug)
-        { 
+        public virtual async Task<IActionResult> UpdateArticle([FromBody]Article body, [FromRoute][Required]string slug)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication must have failed");
+                return StatusCode(401);
+            }
+            ArticleUpdateContract contract = new ArticleUpdateContract();
+            contract.Slug = slug;
+            contract.Title = body.Title;
+            contract.Body = body.Body;
+            contract.Description = body.Description;
+            contract.Tags = body.TagList;
+            contract.AuthorId = userid.Value;
+            var validator = new ArticleUpdateValidator(contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("WebHost.UpdateArticle validation failure: " + validator.GetError().ToString());
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            ArticleGetResponseContract r = await caller.UpdateArticle(contract);
+            if (r == null)
+            {
+                Console.WriteLine("UpdateArticle failed");
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            InlineResponse201 resp = new InlineResponse201();
+            resp.Article = ArticleContractToArticleResponse(r);
+            return StatusCode(200, resp);
+
+            
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(InlineResponse201));
 
@@ -218,13 +362,6 @@ namespace RealworldApi.Web.Controllers
 
             //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(422, default(GenericErrorModel));
-            string exampleJson = null;
-            exampleJson = "{\n  \"article\" : {\n    \"tagList\" : [ \"tagList\", \"tagList\" ],\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"description\" : \"description\",\n    \"title\" : \"title\",\n    \"body\" : \"body\",\n    \"favoritesCount\" : 0,\n    \"slug\" : \"slug\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"favorited\" : true\n  }\n}";
-            
-                        var example = exampleJson != null
-                        ? JsonSerializer.Deserialize<InlineResponse201>(exampleJson)
-                        : default(InlineResponse201);            //TODO: Change the data returned
-            return new ObjectResult(example);
         }
     }
 }

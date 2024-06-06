@@ -11,14 +11,14 @@ namespace Contracts.Communicator.Response
     [DataContract]
     public class CommentsGetResponse
     {
-        public CommentGetResponse()
+        public CommentsGetResponse()
         {
             this.Comments = new List<CommentGetResponseContract>();
-            this.Error = new ErrorDetails();
+            this.Error = new ErrorResponse();
         }
 
         [DataMember]
-        public ErrorDetails Error { get; set; }
+        public ErrorResponse Error { get; set; }
 
         [DataMember]
         public List<CommentGetResponseContract> Comments { get; set; }
@@ -30,11 +30,11 @@ namespace Contracts.Communicator.Response
         public CommentGetResponse()
         {
             this.Comment = new CommentGetResponseContract();
-            this.Error = new ErrorDetails();
+            this.Error = new ErrorResponse();
         }
 
         [DataMember]
-        public ErrorDetails Error { get; set; }
+        public ErrorResponse Error { get; set; }
 
         [DataMember]
         public CommentGetResponseContract Comment { get; set; }

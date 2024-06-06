@@ -10,7 +10,7 @@ CREATE PROCEDURE [dbo].[article_get_filtered]
 AS
 	If @followerName IS NOT NULL
 	BEGIN
-		SELECT @followerId = id FROM [dbo].[Users] WHERE username = @followerName
+		SELECT @followerId = Id FROM [dbo].[Users] WHERE username = @followerName
 	END
 	SELECT
 		A.slug as slug,
@@ -33,9 +33,9 @@ AS
 		ELSE
 			0
 		END as following,
-		STRING_JOIN((SELECT tag FROM [dbo].[Tags] WHERE slug = A.slug), ',') as tagList
+		(SELECT STRING_AGG(tag, ',') FROM [dbo].[Tags] WHERE slug = A.slug) as tagList
 	FROM Articles A 
-	INNER JOIN Users U ON A.authorId = U.id
+	INNER JOIN Users U ON A.authorId = U.Id
 	WHERE 
 		(@slug IS NULL OR A.slug = @slug)
 		AND (@author IS NULL OR U.username = @author)

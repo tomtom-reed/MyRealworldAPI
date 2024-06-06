@@ -1,9 +1,9 @@
 ﻿CREATE PROCEDURE [dbo].[profile_unfollow]
-	@followerId int not null,
-	@followedUsername varchar(50) not null
+	@followerId int,
+	@followedUsername varchar(50)
 AS
 	DECLARE @followedId int
-	SELECT @followedId = id FROM [dbo].[Users] WHERE username = @followedUsername
+	SELECT @followedId = Id FROM [dbo].[Users] WHERE username = @followedUsername
 	IF @followedId IS NULL
 		THROW 50000, 'User does not exist', 1
 	DELETE FROM Follows where userId = @followerId and followedUserId = @followedId 

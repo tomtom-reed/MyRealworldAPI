@@ -33,7 +33,7 @@ namespace Contracts.Communicator.Request
         }
 
         [DataMember]
-        public string Slug { get ; set;}
+        public string Slug { get; set; } = "";
 
         [DataMember]
         public int AuthorId { get; set; }

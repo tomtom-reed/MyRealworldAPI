@@ -35,23 +35,24 @@ namespace RealworldWebHost.Controllers
                 Console.WriteLine("WebHost.CreateUser validation failure: " + validator.GetError().ToString()) ;
                 // Error Handling, premature return
             }
-            bool success = da.CreateUser(body.User.Username, body.User.Email, body.User.Password);
+            int newUserId = da.CreateUser(body.User.Username, body.User.Email, body.User.Password);
 
-            if (success)
+            if (newUserId >= 0)
             {
-                return new ObjectResult(GetUserDetails(body.User.Email));
+                return new ObjectResult(GetUserDetails(newUserId));
             }
             else
             {
                 // error handling 
+                return StatusCode(400, new UserDetailsResponse());
             }
 
-            string exampleJson = null;
-            exampleJson = "{\n  \"comment\" : {\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"id\" : 0,\n    \"body\" : \"body\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\"\n  }\n}";
-            var example = exampleJson != null
-                ? JsonSerializer.Deserialize<UserCreateResponse>(exampleJson)
-                : default(UserCreateResponse);            //TODO: Change the data returned
-            return new ObjectResult(example);
+            //string exampleJson = null;
+            //exampleJson = "{\n  \"comment\" : {\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"id\" : 0,\n    \"body\" : \"body\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\"\n  }\n}";
+            //var example = exampleJson != null
+            //    ? JsonSerializer.Deserialize<UserCreateResponse>(exampleJson)
+            //    : default(UserCreateResponse);            //TODO: Change the data returned
+            //return new ObjectResult(example);
         }
 
         /// <summary>
@@ -75,9 +76,9 @@ namespace RealworldWebHost.Controllers
             }
             
             UserDetails deets = da.GetUserDetailsByEmail(body.Login.Email);
-            if (!String.IsNullOrEmpty(deets.ErrorMsg))
+            if (deets == null)
             {
-                string msg = "WebHost.LoginUser DA failure: " + deets.ErrorMsg;
+                string msg = "WebHost.LoginUser DA failure";
                 Console.WriteLine(msg);
                 response.Error = new ErrorResponse();
                 response.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
@@ -101,17 +102,24 @@ namespace RealworldWebHost.Controllers
         [Route("/api/user/getDetails")]
         public virtual IActionResult GetUserDetails([FromBody] UserDetailsRequest body)
         {
-            // Validation and whatever? 
-            var respbody = GetUserDetails(body.UserDetails.Email); 
-            return new ObjectResult(respbody);
+            // TODO Validation and whatever? 
+            //var respbody = GetUserDetails(body.UserDetails.Email);
+            UserDetails deets = da.GetUserDetailsByEmail(body.UserDetails.Email);
+            if (deets == null)
+            {
+                Console.Write("GetUserDetails Error");
+                // TODO error handling
+                return StatusCode(400, new UserDetailsResponse());
+            }
+            return new ObjectResult(UserDetailsToResponse(deets));
         }
 
-        private UserDetailsResponse GetUserDetails(string email)
+        private UserDetailsResponse GetUserDetails(int userid)
         {
-            UserDetails deets = da.GetUserDetailsByEmail(email);
-            if (!String.IsNullOrEmpty(deets.ErrorMsg))
+            UserDetails deets = da.GetUserDetailsById(userid);
+            if (deets == null)
             {
-                Console.Write("GetUserDetails Error: " + deets.ErrorMsg);
+                Console.Write("GetUserDetails Error");
                 // TODO Error Handling
             }
             return UserDetailsToResponse(deets);
@@ -121,6 +129,7 @@ namespace RealworldWebHost.Controllers
         {
             UserDetailsResponse resp = new UserDetailsResponse();
             resp.User = new UserDetailsResponseElement();
+            resp.User.UserId = deets.Id;
             resp.User.Email = deets.Email;
             resp.User.Username = deets.UserName;
             resp.User.Bio = deets.Bio == null ? "" : deets.Bio;
@@ -154,7 +163,7 @@ namespace RealworldWebHost.Controllers
             bool updateSuccess = da.UpdateUserDetails(body.User);
             if (updateSuccess)
             {
-                resp = GetUserDetails(body.User.Email != null ? body.User.Email : body.User.UserCurrentEmail);
+                resp = GetUserDetails(body.User.UserId);
             }
             
             return new ObjectResult(resp);

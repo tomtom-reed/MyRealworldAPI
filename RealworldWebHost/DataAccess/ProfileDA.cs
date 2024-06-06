@@ -7,7 +7,7 @@ namespace RealworldWebHost.DataAccess
 
     public interface IProfileDA
     {
-        ProfileGetResponseContract GetProfile(string username, int? followerId)
+        ProfileGetResponseContract GetProfile(string username, int? followerId);
         bool Follow(int userId, string username);
         bool StopFollowing(int userId, string username);
         bool SetFavorite(int userId, string slug);

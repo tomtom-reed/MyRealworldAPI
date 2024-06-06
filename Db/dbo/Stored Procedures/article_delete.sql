@@ -1,9 +1,15 @@
 ﻿CREATE PROCEDURE [dbo].[article_delete]
 	@slug VARCHAR (50),
-	@StatusMsg VARCHAR(10) OUTPUT
+	@author_id INT
 AS
-	DELETE FROM Tags WHERE slug = @slug
-	DELETE FROM Articles WHERE slug = @slug
-	IF @@ROWCOUNT = 0
-		SET @StatusMsg = 'No Update';
+	BEGIN
+		-- Delete article
+		DELETE FROM Articles WHERE slug = @slug and authorId = @author_id
+		IF @@ROWCOUNT = 0
+		BEGIN
+			RAISERROR('Article not found', 16, 1)
+			RETURN
+		END
+		DELETE FROM Tags WHERE slug = @slug
+	END
 	RETURN

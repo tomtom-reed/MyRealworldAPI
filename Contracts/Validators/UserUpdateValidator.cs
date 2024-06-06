@@ -22,7 +22,7 @@ namespace Contracts.Validators
 
         public bool Validate()
         {
-            if (string.IsNullOrEmpty(req.UserCurrentEmail))
+            if (req.UserId < 0)
             {
                 err = ErrorTypes.Err_BadRequest;
                 return false;
@@ -53,7 +53,7 @@ namespace Contracts.Validators
             }
 
             // Image and Bio are allowed to be empty string
-
+            err = ErrorTypes.Valid;
             return true;
         }
 

@@ -5,6 +5,9 @@ namespace Contracts.Communicator.Response
     [DataContract]
     public class UserDetailsResponseElement
     {
+        [DataMember]
+        public int UserId { get; set; }
+
         [DataMember (Name = "username")]
         public string Username { get; set; }
 

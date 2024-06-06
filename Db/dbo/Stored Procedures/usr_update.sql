@@ -2,7 +2,7 @@
 -- https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-executesql-transact-sql?view=sql-server-ver16
 
 CREATE PROCEDURE [dbo].[usr_update]
-	@currentemail_hash BINARY(32),
+	@userid int,
 	@new_email_hash BINARY(32) null,
     @new_email_crypt VARBINARY(MAX) null,
 	@new_username VARCHAR(50) null,
@@ -11,7 +11,7 @@ CREATE PROCEDURE [dbo].[usr_update]
 	@new_image VARCHAR(256) null,
 	@StatusMsg VARCHAR(10) OUTPUT
 AS
-	IF NOT EXISTS(SELECT 1 FROM Users WHERE email_hash = @currentemail_hash)
+	IF NOT EXISTS(SELECT 1 FROM Users WHERE Id = @userid)
 	BEGIN
 		SET @StatusMsg = 'Miss';
 		RETURN;
@@ -60,10 +60,10 @@ AS
                 @password BINARY(96) NULL,
                 @bio TEXT NULL,
                 @image VARCHAR(256) NULL,
-				@old_email_hash BINARY(32)'
+				@userId int'
     /* Execute the Transact-SQL String with all parameter value's 
        Using sp_executesql Command */
-	SET @QUERY1 = @QUERY1 + N'updatedAt = GETUTCDATE() WHERE email_hash = @old_email_hash'
+	SET @QUERY1 = @QUERY1 + N'updatedAt = GETUTCDATE() WHERE Id = @userId'
 	PRINT @QUERY1
 	PRINT @ParamDefinition
 	EXECUTE sp_executesql
@@ -75,7 +75,7 @@ AS
 		@new_password,
 		@new_bio,
 		@new_image,
-		@currentemail_hash
+		@userid
 
 	IF @@ROWCOUNT = 0
 		SET @StatusMsg = 'No Update';

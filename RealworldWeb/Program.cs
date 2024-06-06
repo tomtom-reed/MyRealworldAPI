@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.IdentityModel.Tokens;
 using RealworldApi.Web.Security;
 using RealworldWeb.Caller;
 using System.Text;
@@ -22,20 +23,42 @@ namespace RealworldAPI
             /* 
              * Auth Service setup and config validation 
              */
-            string? tokenKey = builder.Configuration.GetValue<string>("JWT:KeyHex");
-            if (tokenKey == null || tokenKey.Length != 32)
+            string? jwtCryptoHex = builder.Configuration.GetValue<string>("JWT:CryptoKey");
+            SymmetricSecurityKey jwtCryptoKey;
+            if (jwtCryptoHex == null || jwtCryptoHex.Length != 32)
             {
-                Console.WriteLine("Appsettings failure: JWT Token must be exactly 64 hex characters");
+                Console.WriteLine("Appsettings failure: JWT crypto key must be exactly 64 hex characters");
                 return;
             }
             try
             {
-                Convert.FromHexString(tokenKey);
+                Convert.FromHexString(jwtCryptoHex);
+                jwtCryptoKey = new SymmetricSecurityKey(Convert.FromHexString(jwtCryptoHex));
             } catch (Exception ex)
             {
-                Console.WriteLine("Appsettings failure at JWT Token convert: " + ex.Message);
+                Console.WriteLine("Appsettings failure at JWT crypto key convert: " + ex.Message);
                 return;
             }
+
+            string? jwtSigningHex = builder.Configuration.GetValue<string>("JWT:CryptoKey");
+            SymmetricSecurityKey jwtSigningKey;
+            if (jwtSigningHex == null || jwtSigningHex.Length != 32)
+            {
+                Console.WriteLine("Appsettings failure: JWT signing key must be exactly 64 hex characters");
+                return;
+            }
+            try
+            {
+                Convert.FromHexString(jwtSigningHex);
+                jwtSigningKey = new SymmetricSecurityKey(Convert.FromHexString(jwtSigningHex));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Appsettings failure at JWT signing key convert: " + ex.Message);
+                return;
+            }
+
+
             builder.Services.AddAuthentication(ApiKeyAuthenticationHandler.SchemeName)
                 .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
                 ApiKeyAuthenticationHandler.SchemeName, options => { });
@@ -56,8 +79,13 @@ namespace RealworldAPI
             /*
              * Singleton Setup
              * */
-            builder.Services.AddSingleton<ITokenUtils>(new TokenUtils(Convert.FromHexString(tokenKey)));
+            builder.Services.AddSingleton<ITokenUtils>(new TokenUtils(jwtCryptoKey, jwtSigningKey));
             builder.Services.AddSingleton<IUserCaller>(new UserCaller(webhostUrl));
+            builder.Services.AddSingleton<IArticleCaller, ArticleCaller>();
+            builder.Services.AddSingleton<ICommentCaller, CommentCaller>();
+            //builder.Services.AddSingleton<ITagCaller, TagCaller>();
+            builder.Services.AddSingleton<IProfileCaller, ProfileCaller>();
+            builder.Services.AddSingleton<IFavoriteCaller, FavoriteCaller>();
 
             var app = builder.Build();
 

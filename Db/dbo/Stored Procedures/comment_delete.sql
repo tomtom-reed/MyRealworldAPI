@@ -1,12 +1,16 @@
 ﻿CREATE PROCEDURE [dbo].[comment_delete]
-	@articleSlug varchar(50) not null,
-	@commentId int not null,
-	@authorId int not null
+	@articleSlug varchar(50),
+	@commentId int,
+	@authorId int
 AS
 	BEGIN TRANSACTION;
 	BEGIN TRY
-		DECLARE @deletedId int;
-		DELETE FROM Comments OUTPUT DELETED.id INTO @deletedId WHERE id = @commentId AND authorId = @authorId;
+		DECLARE @deleted TABLE (
+			Id INT
+		);
+		DELETE FROM Comments OUTPUT DELETED.Id INTO @deleted WHERE Id = @commentId AND authorId = @authorId;
+		DECLARE @deletedId INT;
+		SET @deletedId = (SELECT TOP 1 Id FROM @deleted);
 		IF @deletedId IS NULL
 			THROW 50000, 'Comment does not exist or you are not the author', 1;
 		DELETE FROM ArticleComments WHERE commentId = @deletedId AND articleSlug = @articleSlug;

@@ -29,6 +29,5 @@ namespace RealworldWebHost.Models
         [DataMember]
         public DateTime? UpdatedAt { get; set; }
 
-        [DataMember]
     }
 }

@@ -1,10 +1,10 @@
 ﻿CREATE PROCEDURE [dbo].[profile_follow]
-	@followerId int not null,
-	@followedUsername varchar(50) not null
+	@followerId int,
+	@followedUsername varchar(50)
 AS
 	-- COPILOT : GENERATED CODE
 	DECLARE @followedId int
-	SELECT @followedId = id FROM [dbo].[Users] WHERE username = @followedUsername -- copilot failed here
+	SELECT @followedId = Id FROM [dbo].[Users] WHERE username = @followedUsername -- copilot failed here
 	IF @followedId IS NULL
 		THROW 50000, 'User does not exist', 1
 	IF @followerId = @followedId

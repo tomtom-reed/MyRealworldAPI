@@ -18,6 +18,7 @@ using RealworldApi.Web.Attributes;
 using RealworldApi.Web.Security;
 using Microsoft.AspNetCore.Authorization;
 using RealworldApi.Web.Models;
+using RealworldWeb.Caller;
 
 namespace RealworldApi.Web.Controllers
 { 
@@ -26,7 +27,13 @@ namespace RealworldApi.Web.Controllers
     /// </summary>
     [ApiController]
     public class TagsApiController : ControllerBase
-    { 
+    {
+        private readonly ITokenUtils tokenizer;
+        public TagsApiController(ITokenUtils tokenizer)
+        {
+            this.tokenizer = tokenizer;
+        }
+
         /// <summary>
         /// Get tags
         /// </summary>
@@ -41,6 +48,7 @@ namespace RealworldApi.Web.Controllers
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
         public virtual IActionResult GetTags()
         { 
+            
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(InlineResponse2005));
 

@@ -41,8 +41,16 @@ namespace RealworldWebHost.Controllers
                 resp.Error.ErrorMessage = "Internal Server Error";
                 return new ObjectResult(resp);
             }
+            var article = da.GetArticle(slug);
+            if (article == null)
+            {
+                Console.WriteLine("WebHost.CreateArticle retrieval failure");
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
+                return new ObjectResult(resp);
+            }
             resp.Error.ErrorCode = CALLER_ERR_CD.SUCCESS;
-            resp.Slug = slug;
+            resp.Article = article;
             return new ObjectResult(resp);
         }
 
@@ -78,6 +86,32 @@ namespace RealworldWebHost.Controllers
             }
             resp.Error.ErrorCode = CALLER_ERR_CD.SUCCESS;
             return new ObjectResult(null);
+        }
+
+        [HttpPost]
+        [Route("/api/article/delete")]
+        public virtual IActionResult DeleteArticle([FromBody] ArticleDeleteRequest body)
+        {
+            Console.WriteLine("Call to WebHost.DeleteArticle with slug: " + body.Contract.Slug);
+            var resp = new ArticleDeleteResponse();
+            var validator = new ArticleDeleteValidator(body.Contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("WebHost.DeleteArticle validation failure: " + validator.GetError().ToString());
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = validator.GetError().Message;
+                return new ObjectResult(resp);
+            }
+            if (!da.DeleteArticle(body.Contract))
+            {
+                Console.WriteLine("WebHost.DeleteArticle delete failure");
+                resp.Error.ErrorCode = CALLER_ERR_CD.GENERIC_ERROR;
+                resp.Error.ErrorMessage = "Internal Server Error";
+                return new ObjectResult(resp);
+            }
+            resp.Error.ErrorCode = CALLER_ERR_CD.SUCCESS;
+            resp.Success = true;
+            return new ObjectResult(resp);
         }
 
         [HttpPost]

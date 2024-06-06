@@ -16,7 +16,7 @@ namespace Contracts.Communicator.Response
         }
 
         [DataMember]
-        public bool Success { get; set; }
+        public ArticleGetResponseContract Article { get; set; }
 
         [DataMember]
         public ErrorResponse Error { get; set; }

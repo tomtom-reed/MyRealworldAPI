@@ -10,7 +10,9 @@ namespace RealworldWeb.Caller
     public interface IUserCaller
     {
         Task<UserDetailsResponseElement?> Login(LoginContract login);
-        Task<UserDetailsResponseElement> GetUserDetailsAsync(string email);
+        Task<UserDetailsResponseElement> GetUserDetailsByEmailAsync(string email);
+        Task<UserDetailsResponseElement> GetUserDetailsByUsernameAsync(string username);
+        Task<UserDetailsResponseElement> GetUserDetailsByIdAsync(int userId);
         Task<bool> CreateUserAsync(UserCreateContract user);
         Task<UserDetailsResponseElement> UpdateUser(UserUpdateContract user);
     }
@@ -37,19 +39,14 @@ namespace RealworldWeb.Caller
             if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
             {
                 Console.WriteLine("Login Success");
-                UserDetailsResponseElement result = new UserDetailsResponseElement();
-                result.Username = res.User.Username;
-                result.Email = res.User.Email;
-                result.Image = res.User.Image;
-                result.Bio = res.User.Bio;
-                return result;
+                return res.User;
             } 
             Console.WriteLine("Call to Login failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             return null;
         }
 
 
-        public async Task<UserDetailsResponseElement> GetUserDetailsAsync(string email)
+        public async Task<UserDetailsResponseElement> GetUserDetailsByEmailAsync(string email)
         {
             var req = new RestRequest("/api/user/getDetails");
             UserDetailsRequest body = new UserDetailsRequest();
@@ -59,15 +56,20 @@ namespace RealworldWeb.Caller
             var res = await client.PostAsync<UserDetailsResponse>(req);
             if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
             {
-                UserDetailsResponseElement result = new UserDetailsResponseElement();
-                result.Username = res.User.Username;
-                result.Email = res.User.Email;
-                result.Image = res.User.Image;
-                result.Bio = res.User.Bio;
-                return result;
+                return res.User;
             }
             //
             return new UserDetailsResponseElement(); // null
+        }
+
+        public async Task<UserDetailsResponseElement> GetUserDetailsByUsernameAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<UserDetailsResponseElement> GetUserDetailsByIdAsync(int userid)
+        {
+            throw new NotImplementedException();
         }
 
 
@@ -98,12 +100,7 @@ namespace RealworldWeb.Caller
             var res = await client.PostAsync<UserDetailsResponse>(req);
             if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
             {
-                UserDetailsResponseElement result = new UserDetailsResponseElement();
-                result.Username = res.User.Username;
-                result.Email = res.User.Email;
-                result.Image = res.User.Image;
-                result.Bio = res.User.Bio;
-                return result;
+                return res.User;
             }
             //
             return new UserDetailsResponseElement(); // null

@@ -26,6 +26,8 @@ namespace RealworldWebHost.DataAccess
         /// <returns></returns>
         bool UpdateArticle(ArticleUpdateContract article);
 
+        bool DeleteArticle(ArticleDeleteContract article);
+
         /// <summary>
         /// Gets a list of articles filtered by any field except slug. All fields are optional. 
         /// FollowerName supercedes FollowerId if provided. 
@@ -48,6 +50,7 @@ namespace RealworldWebHost.DataAccess
     {
         private const string PROC_ARTICLE_CREATE = "article_create";
         private const string PROC_ARTICLE_UPDATE = "article_update";
+        private const string PROC_ARTICLE_DELETE = "article_delete";
         private const string PROC_ARTICLE_GET_FILTERED = "article_get_filtered";
         private const string PROC_GET_TAGS = "get_all_tags";
 
@@ -108,6 +111,33 @@ namespace RealworldWebHost.DataAccess
                         cmd.Parameters.AddWithValue("@description", article.Description);
                         cmd.Parameters.AddWithValue("@body", article.Body);
                         cmd.Parameters.AddWithValue("@tags", article.Tags != null ? string.Join(',', article.Tags) : null);
+                        int rows = cmd.ExecuteNonQuery();
+                        if (rows == 0)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+            return true;
+        }
+
+        public bool DeleteArticle(ArticleDeleteContract article)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(this.connectionString))
+                {
+                    connection.Open();
+                    using (SqlCommand cmd = new SqlCommand(PROC_ARTICLE_DELETE, connection) { CommandType = System.Data.CommandType.StoredProcedure })
+                    {
+                        cmd.Parameters.AddWithValue("@slug", article.Slug);
+                        cmd.Parameters.AddWithValue("@author_id", article.AuthorId);
                         int rows = cmd.ExecuteNonQuery();
                         if (rows == 0)
                         {

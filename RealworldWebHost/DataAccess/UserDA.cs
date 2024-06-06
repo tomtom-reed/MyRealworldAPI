@@ -15,7 +15,7 @@ namespace RealworldWebHost.DataAccess
 
     public interface IUserDA
     {
-        bool CreateUser(String username, string email, string password);
+        int CreateUser(String username, string email, string password);
         UserDetails GetUserDetailsByEmail(string email);
         UserDetails GetUserDetailsByUsername(string username);
         UserDetails GetUserDetailsById(int id);
@@ -56,12 +56,13 @@ namespace RealworldWebHost.DataAccess
             return;
         }
 
-        public bool CreateUser(String username, string email, string password)
+        public Int32 CreateUser(String username, string email, string password)
         {
             byte[] emailhash = secUtils.HashSha256(email); //32
             byte[] emailcipher = secUtils.Encrypt(email); //32
             byte[] pwhash = secUtils.HashPassword(password); //80
-            string? status = "Fail";
+            //string? status = "Fail";
+            int userid = -1;
             try
             {
                 using (SqlConnection connection = new SqlConnection(this.ConnectionString))
@@ -73,14 +74,7 @@ namespace RealworldWebHost.DataAccess
                         cmd.Parameters.Add(new SqlParameter("@emailhash", emailhash));
                         cmd.Parameters.Add(new SqlParameter("@emailcrypt", emailcipher));
                         cmd.Parameters.Add(new SqlParameter("@password", pwhash));
-                        var _statusParam = new SqlParameter("@StatusMsg", System.Data.SqlDbType.VarChar, 10);
-                        _statusParam.Direction = System.Data.ParameterDirection.Output;
-                        cmd.Parameters.Add(_statusParam);
-                        Int32 rows = cmd.ExecuteNonQuery();
-                        if (rows == 0) {
-                            Console.WriteLine("CreateUser failed with status: " + _statusParam.Value.ToString());
-                        }
-                        status = _statusParam.Value.ToString();
+                        userid = (Int32) cmd.ExecuteScalar();
                     }
                     connection.Close();
                 }
@@ -89,11 +83,7 @@ namespace RealworldWebHost.DataAccess
             {
                 Console.WriteLine(ex.Message);
             }
-            if (string.IsNullOrEmpty(status))
-            {
-                return true;
-            }
-            return false;
+            return userid;
         }
 
         private UserDetails ReaderToUserDetails(SqlDataReader reader)
@@ -231,7 +221,8 @@ namespace RealworldWebHost.DataAccess
                     connection.Open();
                     using (SqlCommand cmd = new SqlCommand(PROC_USR_UPDATE, connection) { CommandType = System.Data.CommandType.StoredProcedure })
                     {
-                        cmd.Parameters.Add(new SqlParameter("@currentemail_hash", secUtils.HashSha256(req.UserCurrentEmail)));
+                        //cmd.Parameters.Add(new SqlParameter("@currentemail_hash", secUtils.HashSha256(req.UserCurrentEmail)));
+                        cmd.Parameters.AddWithValue("@userid", req.UserId);
                         cmd.Parameters.Add(new SqlParameter("@new_email_hash", 
                             req.Email != null ? secUtils.HashSha256(req.Email) : null));
                         cmd.Parameters.Add(new SqlParameter("@new_email_crypt", 

@@ -17,39 +17,112 @@ namespace RealworldApi.Web.Security
 
     public interface ITokenUtils
     {
-        string GetToken(string email);
+        string GetToken(int userId);
+        int? GetIdFromAuthedUser(ClaimsPrincipal user);
+        ClaimsPrincipal? ValidateToken(string token);
     }
     public class TokenUtils : ITokenUtils
     {
         // https://dotnetcorecentral.com/blog/authentication-handler-in-asp-net-core/
-        private readonly byte[] tokenKey;
+        //private readonly byte[] tokenKey;
+        SymmetricSecurityKey cryptokey;
+        SymmetricSecurityKey signingkey;
 
-        public TokenUtils(byte[] tokenKey)
+        public TokenUtils(SymmetricSecurityKey encryptKey, SymmetricSecurityKey signingkey)
         {
             //Console.WriteLine("TokenUtils constructor, tokenKey = " + Encoding.UTF8.GetString(tokenKey));
-            this.tokenKey = tokenKey;
+            this.cryptokey = encryptKey;
+            this.signingkey = signingkey;
+            //TokenKey = Convert.FromHexString(configuration.GetValue<string>("JWT:KeyHex")); // checked in Program.cs
+            this.signingkey = signingkey;
         }
 
-        public string GetToken(string email)
+        public int? GetIdFromAuthedUser(ClaimsPrincipal user)
         {
-            if (String.IsNullOrEmpty(email))
+            if (user == null || user.Claims == null)
+            {
+                return null;
+            }
+            try
+            {
+                if (user.Claims.FirstOrDefault(c => c.Type == "id") is Claim claim)
+                {
+                    return int.Parse(claim.Value);
+                }
+            } catch (Exception ex)
+            {
+                Console.WriteLine("Parsing UserID failed: " + ex.Message);
+            }
+            return null;
+        }
+
+        public ClaimsPrincipal? ValidateToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = "MyIssuer",
+
+                ValidAudience = "MyAudience",
+                ValidateAudience = true,
+                RequireAudience = true,
+
+                ValidateLifetime = true,
+                RequireExpirationTime = true,
+                ClockSkew = TimeSpan.Zero,
+
+                IssuerSigningKey = cryptokey, // TODO shouldn't use the same credentials for both signing and encryption
+                TokenDecryptionKey = cryptokey,
+                ValidateIssuerSigningKey = true,
+                ValidateTokenReplay = true,
+                ValidateActor = true,
+                RequireSignedTokens = true,
+            };
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+                return principal;
+                //return GetIdFromAuthedUser(principal);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to validate token: " + e.Message);
+                return null;
+            }
+        }
+
+        public string GetToken(int userid)
+        {
+            if (userid < 0)
             {
                 return null;
             }
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
+                Audience = "MyAudience",
+                Issuer = "MyIssuer",
+
+                Claims = new Dictionary<string, object>
                 {
-                    new Claim(ClaimTypes.Name, email)
-                }),
+                    ["id"] = userid,
+                },
+
                 Expires = DateTime.UtcNow.AddHours(12), // TODO reduce to 1
+                IssuedAt = DateTime.UtcNow,
+                NotBefore = DateTime.UtcNow,
+
                 SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(tokenKey),
-                    SecurityAlgorithms.HmacSha256Signature)
+                    cryptokey,
+                    SecurityAlgorithms.HmacSha256Signature),
+                EncryptingCredentials = new EncryptingCredentials(
+                    cryptokey,
+                    SecurityAlgorithms.Aes128KW,
+                    SecurityAlgorithms.Aes128CbcHmacSha256)
             };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var jwtSecurityToken = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
+            return tokenHandler.WriteToken(jwtSecurityToken);
         }
     }
     /// <summary>
@@ -61,16 +134,18 @@ namespace RealworldApi.Web.Security
         /// scheme name for authentication handler.
         /// </summary>
         public const string SchemeName = "ApiKey";
-        private readonly byte[] TokenKey;
+        private ITokenUtils tokenUtils;
 
         public ApiKeyAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, 
             ILoggerFactory logger, 
             UrlEncoder encoder, 
             ISystemClock clock,
-            IConfiguration configuration) : base(options, logger, encoder, clock)
+            IConfiguration configuration,
+            ITokenUtils tokenUtils) : base(options, logger, encoder, clock)
         {
             //Console.WriteLine("ApiKeyAuthenticationHandler constructor");
-            TokenKey = Convert.FromHexString(configuration.GetValue<string>("JWT:KeyHex")); // checked in Program.cs
+            this.tokenUtils = tokenUtils;
+            
         }
 
         /// <summary>
@@ -87,19 +162,11 @@ namespace RealworldApi.Web.Security
                 return AuthenticateResult.Fail("Missing Authorization Header");
             }
 
-            var jwtHandler = new JwtSecurityTokenHandler();
-            var token = jwtHandler.ReadJwtToken(Request.Headers["api_key"]);
-            // TODO Validate the key and all that 
-            /*if (token.SigningCredentials.Algorithm != SecurityAlgorithms.HmacSha256Signature
-                || !token.SigningKey.Equals(Encoding.ASCII.GetBytes(ApiKeyAuthenticationHandler.TokenKey)))
+            var principal = tokenUtils.ValidateToken(Request.Headers["api_key"]);
+            if (principal == null)
             {
-                Console.WriteLine("Failed to verify token");
-                return AuthenticateResult.Fail("Failed to verify token");
-            }*/
-            List<Claim> claims = token.Claims.ToList();
-
-            var identity = new ClaimsIdentity(claims, Scheme.Name);
-            var principal = new ClaimsPrincipal(identity);
+                return AuthenticateResult.Fail("Invalid Authorization Header");
+            }
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
             // TODO

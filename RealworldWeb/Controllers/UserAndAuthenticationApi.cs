@@ -38,9 +38,9 @@ namespace RealworldApi.Web.Controllers
         }
 
 
-        private async Task<IActionResult> GetUserDetails(string email) 
+        private async Task<IActionResult> GetUserDetails(int userId) 
         {
-            UserDetailsResponseElement deets = await caller.GetUserDetailsAsync(email);
+            UserDetailsResponseElement deets = await caller.GetUserDetailsByIdAsync(userId);
             if (deets == null)
             {
                 return StatusCode(422, default(GenericErrorModel)); // TODO
@@ -50,7 +50,7 @@ namespace RealworldApi.Web.Controllers
             respBody.User.Email = deets.Email;
             respBody.User.Bio = deets.Bio;
             respBody.User.Image = deets.Image;
-            respBody.User.Token = tokenizer.GetToken(deets.Email);
+            respBody.User.Token = tokenizer.GetToken(deets.UserId);
             return new ObjectResult(respBody);
         }
 
@@ -87,8 +87,7 @@ namespace RealworldApi.Web.Controllers
             if (createSuccess) {
                 return StatusCode(422, default(GenericErrorModel));
             }
-
-            UserDetailsResponseElement deetsResp = await caller.GetUserDetailsAsync(usr.Email);
+            UserDetailsResponseElement deetsResp = await caller.GetUserDetailsByEmailAsync(usr.Email);
             if (deetsResp == null)
             {
                 return StatusCode(422, default(GenericErrorModel));
@@ -99,7 +98,7 @@ namespace RealworldApi.Web.Controllers
             respBody.User.Email = deetsResp.Email;
             respBody.User.Bio = deetsResp.Bio;
             respBody.User.Image = deetsResp.Image;
-            respBody.User.Token = tokenizer.GetToken(deetsResp.Email);
+            respBody.User.Token = tokenizer.GetToken(deetsResp.UserId);
 
             return StatusCode(201, respBody);
         }
@@ -120,20 +119,14 @@ namespace RealworldApi.Web.Controllers
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            if (User.Claims == null || User.Claims.Count() == 0)
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
             {
                 Console.WriteLine("Authentication must have failed");
                 return StatusCode(401);
             }
-            var claimslist = User.Claims.ToList();
-            Claim nameclaim = claimslist.FirstOrDefault(c => c.Type == "unique_name"); // ClaimTypes.Name);
-            if (nameclaim == null)
-            {
-                Console.WriteLine("NameClaim is null");
-                return StatusCode(422, default(GenericErrorModel));
-            }
 
-            var deets = await GetUserDetails(nameclaim.Value);
+            var deets = await GetUserDetails(userid.Value);
             return deets;
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(InlineResponse200));
@@ -184,7 +177,7 @@ namespace RealworldApi.Web.Controllers
             respBody.User.Email = resp.Email;
             respBody.User.Bio = resp.Bio;
             respBody.User.Image = resp.Image;
-            respBody.User.Token = tokenizer.GetToken(resp.Email);
+            respBody.User.Token = tokenizer.GetToken(resp.UserId);
 
             return StatusCode(200, respBody);
         }
@@ -207,24 +200,18 @@ namespace RealworldApi.Web.Controllers
         public virtual async Task<IActionResult> UpdateCurrentUser([FromBody]UpdateUser body)
         {
             // Step 1: Get the token 
-            if (User.Claims == null || User.Claims.Count() == 0)
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
             {
                 Console.WriteLine("Authentication must have failed");
                 return StatusCode(401);
-            }
-            var claimslist = User.Claims.ToList();
-            Claim? nameclaim = claimslist.FirstOrDefault(c => c.Type == "unique_name"); // ClaimTypes.Name);
-            if (nameclaim == null)
-            {
-                Console.WriteLine("NameClaim is null");
-                return StatusCode(422, default(GenericErrorModel));
             }
 
             // Step 2:  Validator.
             //      Fail if everything is null
             //      null || policy
             UserUpdateContract req = new UserUpdateContract();
-            req.UserCurrentEmail = nameclaim.Value;
+            req.UserId = userid.Value;
             req.Email = body.Email;
             req.Username = body.Username;
             req.Password = body.Password;
@@ -247,7 +234,7 @@ namespace RealworldApi.Web.Controllers
             respBody.User.Email = resp.Email;
             respBody.User.Bio = resp.Bio;
             respBody.User.Image = resp.Image;
-            respBody.User.Token = tokenizer.GetToken(resp.Email);
+            respBody.User.Token = tokenizer.GetToken(resp.UserId);
 
             return StatusCode(200, respBody);
 

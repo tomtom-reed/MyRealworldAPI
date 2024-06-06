@@ -2,14 +2,13 @@
 	@username VARCHAR(50),
 	@emailhash BINARY(64),
 	@emailcrypt VARBINARY(MAX),
-	@password BINARY(80),
-	@StatusMsg VARCHAR(10) OUTPUT
+	@password BINARY(80)
 AS
-	IF (EXISTS(SELECT 1 FROM USERS WHERE username = @username))
-	BEGIN
-		SELECT @StatusMsg = 'Collision';
-		RETURN;
-	END
+	--IF (EXISTS(SELECT 1 FROM USERS WHERE username = @username))
+	--BEGIN
+	--	SELECT @StatusMsg = 'Collision';
+	--	RETURN;
+	--END
 
 	INSERT INTO Users 
 		(username, 
@@ -25,7 +24,6 @@ AS
 		@password,
 		GETUTCDATE(),
 		GETUTCDATE())
+
+	SELECT SCOPE_IDENTITY(); -- call with (Int32) cmd.ExecuteScalar()
 	RETURN;
-
-
--- username, emailhash, emailcrypt, password

@@ -20,6 +20,10 @@ using RealworldApi.Web.Security;
 using Microsoft.AspNetCore.Authorization;
 using RealworldApi.Web.Models;
 using System.Text.Json;
+using RealworldWeb.Caller;
+using Contracts.Communicator.Response;
+using Contracts.Validators;
+using Contracts.Communicator.Request;
 
 namespace RealworldApi.Web.Controllers
 { 
@@ -28,7 +32,30 @@ namespace RealworldApi.Web.Controllers
     /// </summary>
     [ApiController]
     public class CommentsApiController : ControllerBase
-    { 
+    {
+        private readonly ITokenUtils tokenizer;
+        private readonly ICommentCaller caller;
+
+        public CommentsApiController(ITokenUtils tokenizer, ICommentCaller caller)
+        {
+            this.tokenizer = tokenizer;
+            this.caller = caller;
+        }
+
+        private Comment ConvertComment(CommentGetResponseContract contract)
+        {
+            Comment comment = new Comment();
+            comment.Id = contract.Id;
+            comment.Body = contract.Body;
+            comment.CreatedAt = contract.CreatedAt;
+            comment.UpdatedAt = contract.UpdatedAt;
+            comment.Author = new Profile();
+            comment.Author.Bio = contract.Author.Bio;
+            comment.Author.Following = contract.Author.Following;
+            comment.Author.Image = contract.Author.Image;
+            comment.Author.Username = contract.Author.Username;
+            return comment;
+        }
         /// <summary>
         /// Create a comment for an article
         /// </summary>
@@ -45,8 +72,36 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("CreateArticleComment")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse2004), description: "Single comment")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult CreateArticleComment([FromBody]Object body, [FromRoute][Required]string slug)
-        { 
+        public virtual async Task<IActionResult> CreateArticleComment([FromBody]Comment body, [FromRoute][Required]string slug)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication must have failed");
+                return StatusCode(401);
+            }
+            CommentCreateContract contract = new CommentCreateContract();
+            contract.ArticleSlug = slug;
+            contract.AuthorId = userid.Value;
+            contract.Body = body.Body;
+            var validator = new CommentCreateValidator(contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("Web.CreateComment validation failure: " + validator.GetError().ToString());
+                return StatusCode(422, default(GenericErrorModel));
+            }
+
+            var response = await caller.CreateComment(contract);
+            if (response == null)
+            {
+                Console.WriteLine("Call to CreateComment failed");
+                return StatusCode(422, default(GenericErrorModel));
+            }
+
+            InlineResponse2004 resp = new InlineResponse2004();
+            resp.Comment = ConvertComment(response);
+            return StatusCode(200, resp);
+            
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(InlineResponse2004));
 
@@ -55,13 +110,6 @@ namespace RealworldApi.Web.Controllers
 
             //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(422, default(GenericErrorModel));
-            string exampleJson = null;
-            exampleJson = "{\n  \"comment\" : {\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"id\" : 0,\n    \"body\" : \"body\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\"\n  }\n}";
-            
-                        var example = exampleJson != null
-                        ? JsonSerializer.Deserialize<InlineResponse2004>(exampleJson)
-                        : default(InlineResponse2004);            //TODO: Change the data returned
-            return new ObjectResult(example);
         }
 
         /// <summary>
@@ -79,8 +127,32 @@ namespace RealworldApi.Web.Controllers
         [ValidateModelState]
         [SwaggerOperation("DeleteArticleComment")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult DeleteArticleComment([FromRoute][Required]string slug, [FromRoute][Required]int? id)
-        { 
+        public virtual async Task<IActionResult> DeleteArticleComment([FromRoute][Required]string slug, [FromRoute][Required]int? commentid)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication must have failed");
+                return StatusCode(401);
+            }
+            CommentDeleteContract contract = new CommentDeleteContract();
+            contract.Slug = slug;
+            contract.AuthorId = userid.Value;
+            contract.CommentId = commentid;
+            var validator = new CommentDeleteValidator(contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("Web.DeleteComment validation failure: " + validator.GetError().ToString());
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            var result = await caller.DeleteComment(contract);
+            if (string.IsNullOrEmpty(result))
+            {
+                Console.WriteLine("Call to DeleteComment failed");
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            return StatusCode(200);
+
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200);
 
@@ -89,8 +161,6 @@ namespace RealworldApi.Web.Controllers
 
             //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(422, default(GenericErrorModel));
-
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -107,8 +177,36 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("GetArticleComments")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse2003), description: "Multiple comments")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual IActionResult GetArticleComments([FromRoute][Required]string slug)
-        { 
+        public virtual async Task<IActionResult> GetArticleComments([FromRoute][Required]string slug)
+        {
+            int? userid = tokenizer.GetIdFromAuthedUser(User);
+            if (userid == null)
+            {
+                Console.WriteLine("Authentication is optional");
+            }
+            CommentGetContract contract = new CommentGetContract();
+            contract.Slug = slug;
+            contract.FollowerId = userid;
+            var validator = new CommentGetManyValidator(contract);
+            if (!validator.Validate())
+            {
+                Console.WriteLine("Web.GetComment validation failure: " + validator.GetError().ToString());
+                return StatusCode(422, default(GenericErrorModel));
+            }
+
+            var response = await caller.GetAllComments(slug, userid);
+            if (response == null)
+            {
+                Console.WriteLine("Call to GetAllComments failed");
+                return StatusCode(422, default(GenericErrorModel));
+            }
+            InlineResponse2003 resp = new InlineResponse2003();
+            resp.Comments = new List<Comment>();
+            foreach (var comment in response)
+            {
+                resp.Comments.Add(ConvertComment(comment));
+            }
+            return StatusCode(200, resp);
             //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(200, default(InlineResponse2003));
 
@@ -117,13 +215,6 @@ namespace RealworldApi.Web.Controllers
 
             //TODO: Uncomment the next line to return response 422 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
             // return StatusCode(422, default(GenericErrorModel));
-            string exampleJson = null;
-            exampleJson = "{\n  \"comments\" : [ {\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"id\" : 0,\n    \"body\" : \"body\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\"\n  }, {\n    \"createdAt\" : \"2000-01-23T04:56:07.000+00:00\",\n    \"author\" : {\n      \"image\" : \"image\",\n      \"following\" : true,\n      \"bio\" : \"bio\",\n      \"username\" : \"username\"\n    },\n    \"id\" : 0,\n    \"body\" : \"body\",\n    \"updatedAt\" : \"2000-01-23T04:56:07.000+00:00\"\n  } ]\n}";
-            
-                        var example = exampleJson != null
-                        ? JsonSerializer.Deserialize<InlineResponse2003>(exampleJson)
-                        : default(InlineResponse2003);            //TODO: Change the data returned
-            return new ObjectResult(example);
         }
     }
 }

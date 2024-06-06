@@ -15,12 +15,12 @@ namespace Contracts.Communicator.Response
         public ProfileGetResponseContract Profile { get; set; }
 
         [DataMember]
-        public ErrorDetails Error { get; set; }
+        public ErrorResponse Error { get; set; }
 
         public ProfileGetResponse()
         {
             Profile = new ProfileGetResponseContract();
-            Error = new ErrorDetails();
+            Error = new ErrorResponse();
         }
     }
 

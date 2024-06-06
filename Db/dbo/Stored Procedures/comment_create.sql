@@ -1,7 +1,7 @@
 ﻿CREATE PROCEDURE [dbo].[comment_create]
-	@authorId int not null,
-	@articleSlug varchar(50) not null,
-	@body text not null,
+	@authorId int,
+	@articleSlug varchar(50),
+	@body text,
 	@commentId int OUTPUT
 AS
 	BEGIN TRANSACTION;
