@@ -1,5 +1,6 @@
 ﻿using Contracts.Communicator.Request;
 using Contracts.Communicator.Response;
+using RealworldWeb.Utils;
 using RestSharp;
 
 namespace RealworldWeb.Caller
@@ -19,9 +20,9 @@ namespace RealworldWeb.Caller
     {
         RestClient client;
 
-        public ArticleCaller(string webhostUrl)
+        public ArticleCaller(WebConfiguration config)
         {
-            var options = new RestClientOptions(webhostUrl);
+            var options = new RestClientOptions(config.Connections_WebHost);
             this.client = new RestClient(options);
         }
 

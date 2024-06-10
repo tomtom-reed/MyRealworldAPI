@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Tokens;
 using RealworldApi.Web.Security;
 using RealworldWeb.Caller;
+using RealworldWeb.Utils;
 using System.Text;
 
 namespace RealworldAPI
@@ -23,7 +24,7 @@ namespace RealworldAPI
             /* 
              * Auth Service setup and config validation 
              */
-            string? jwtCryptoHex = builder.Configuration.GetValue<string>("JWT:CryptoKey");
+            /*string? jwtCryptoHex = builder.Configuration.GetValue<string>("JWT:CryptoKey");
             SymmetricSecurityKey jwtCryptoKey;
             if (jwtCryptoHex == null || jwtCryptoHex.Length != 32)
             {
@@ -38,9 +39,9 @@ namespace RealworldAPI
             {
                 Console.WriteLine("Appsettings failure at JWT crypto key convert: " + ex.Message);
                 return;
-            }
+            }*/
 
-            string? jwtSigningHex = builder.Configuration.GetValue<string>("JWT:CryptoKey");
+            /*string? jwtSigningHex = builder.Configuration.GetValue<string>("JWT:CryptoKey");
             SymmetricSecurityKey jwtSigningKey;
             if (jwtSigningHex == null || jwtSigningHex.Length != 32)
             {
@@ -56,7 +57,7 @@ namespace RealworldAPI
             {
                 Console.WriteLine("Appsettings failure at JWT signing key convert: " + ex.Message);
                 return;
-            }
+            }*/
 
 
             builder.Services.AddAuthentication(ApiKeyAuthenticationHandler.SchemeName)
@@ -69,18 +70,19 @@ namespace RealworldAPI
             });
 
 
-            string? webhostUrl = builder.Configuration.GetValue<string>("Connections:WebHost");
+            /*string? webhostUrl = builder.Configuration.GetValue<string>("Connections:WebHost");
             if (string.IsNullOrEmpty(webhostUrl))
             {
                 Console.WriteLine("Appsettings failure at Connections:WebHost");
                 return;
-            }
+            }*/
 
             /*
              * Singleton Setup
              * */
-            builder.Services.AddSingleton<ITokenUtils>(new TokenUtils(jwtCryptoKey, jwtSigningKey));
-            builder.Services.AddSingleton<IUserCaller>(new UserCaller(webhostUrl));
+            builder.Services.AddSingleton(new WebConfiguration(builder.Configuration));
+            builder.Services.AddSingleton<ITokenUtils, TokenUtils>();
+            builder.Services.AddSingleton<IUserCaller, UserCaller>();
             builder.Services.AddSingleton<IArticleCaller, ArticleCaller>();
             builder.Services.AddSingleton<ICommentCaller, CommentCaller>();
             //builder.Services.AddSingleton<ITagCaller, TagCaller>();

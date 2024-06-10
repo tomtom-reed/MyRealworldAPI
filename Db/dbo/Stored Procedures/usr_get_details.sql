@@ -1,7 +1,7 @@
 ﻿CREATE PROCEDURE [dbo].[usr_get_details]
-	@email varchar(50) null,
-	@username varchar(50) null,
-	@userid int null
+	@email varchar(50) = null,
+	@username varchar(50) = null,
+	@userid int = null
 AS
 	IF @email is null AND @username is null AND @userid is null
 		RETURN -1;

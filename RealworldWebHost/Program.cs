@@ -39,6 +39,8 @@ namespace RealworldWebHost
             // Bad practice, do not do this in prod 
             scsbuilder.TrustServerCertificate = true;
             scsbuilder.Encrypt = false;
+            scsbuilder.IntegratedSecurity = false;
+            scsbuilder.Authentication = SqlAuthenticationMethod.SqlPassword;
 
             /*
              * Vault mock
@@ -71,9 +73,13 @@ namespace RealworldWebHost
                 var sec = (ISecUtils)s.GetRequiredService(typeof(ISecUtils));
                 return new ArticleDA(sec, scsbuilder.ConnectionString);
             });
+            builder.Services.AddSingleton<IUserDA>(s =>
+            {
+                var sec = (ISecUtils)s.GetRequiredService(typeof(ISecUtils));
+                return new UserDA(sec, scsbuilder.ConnectionString);
+            });
             builder.Services.AddSingleton<ICommentDA>(new CommentDA(scsbuilder.ConnectionString));
             builder.Services.AddSingleton<IProfileDA>(new ProfileDA(scsbuilder.ConnectionString));
-            builder.Services.AddSingleton<IUserDA>(new UserDA(scsbuilder.ConnectionString));
 
 
             /*

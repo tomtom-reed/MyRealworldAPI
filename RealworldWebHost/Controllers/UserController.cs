@@ -99,15 +99,47 @@ namespace RealworldWebHost.Controllers
         }
 
         [HttpPost]
-        [Route("/api/user/getDetails")]
-        public virtual IActionResult GetUserDetails([FromBody] UserDetailsRequest body)
+        [Route("/api/user/getDetailsByEmail")]
+        public virtual IActionResult GetUserDetailsByEmail([FromBody] UserDetailsByEmailRequest body)
         {
             // TODO Validation and whatever? 
             //var respbody = GetUserDetails(body.UserDetails.Email);
-            UserDetails deets = da.GetUserDetailsByEmail(body.UserDetails.Email);
+            UserDetails deets = da.GetUserDetailsByEmail(body.Email);
             if (deets == null)
             {
-                Console.Write("GetUserDetails Error");
+                Console.Write("GetUserDetailsByEmail Error");
+                // TODO error handling
+                return StatusCode(400, new UserDetailsResponse());
+            }
+            return new ObjectResult(UserDetailsToResponse(deets));
+        }
+
+        [HttpPost]
+        [Route("/api/user/getDetailsByUsername")]
+        public virtual IActionResult GetUserDetails([FromBody] UserDetailsByUsernameRequest body)
+        {
+            // TODO Validation and whatever? 
+            //var respbody = GetUserDetails(body.UserDetails.Email);
+            UserDetails deets = da.GetUserDetailsByUsername(body.Username);
+            if (deets == null)
+            {
+                Console.Write("GetUserDetailsByUsername Error");
+                // TODO error handling
+                return StatusCode(400, new UserDetailsResponse());
+            }
+            return new ObjectResult(UserDetailsToResponse(deets));
+        }
+
+        [HttpPost]
+        [Route("/api/user/getDetailsById")]
+        public virtual IActionResult GetUserDetailsById([FromBody] UserDetailsByIdRequest body)
+        {
+            // TODO Validation and whatever? 
+            //var respbody = GetUserDetails(body.UserDetails.Email);
+            UserDetails deets = da.GetUserDetailsById(body.Id);
+            if (deets == null)
+            {
+                Console.Write("GetUserDetailsById Error");
                 // TODO error handling
                 return StatusCode(400, new UserDetailsResponse());
             }

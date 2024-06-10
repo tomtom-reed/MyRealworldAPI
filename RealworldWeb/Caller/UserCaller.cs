@@ -4,6 +4,7 @@ using RestSharp.Authenticators;
 
 using Contracts.Communicator.Request;
 using Contracts.Models;
+using RealworldWeb.Utils;
 
 namespace RealworldWeb.Caller
 {
@@ -21,8 +22,8 @@ namespace RealworldWeb.Caller
 
         RestClient client;
         
-        public UserCaller(string webhostUrl) {
-            var options = new RestClientOptions(webhostUrl); 
+        public UserCaller(WebConfiguration config) {
+            var options = new RestClientOptions(config.Connections_WebHost); 
             this.client = new RestClient(options);
         }
 
@@ -45,13 +46,12 @@ namespace RealworldWeb.Caller
             return null;
         }
 
-
         public async Task<UserDetailsResponseElement> GetUserDetailsByEmailAsync(string email)
         {
-            var req = new RestRequest("/api/user/getDetails");
-            UserDetailsRequest body = new UserDetailsRequest();
-            body.UserDetails.Email = email;
-            req.AddJsonBody<UserDetailsRequest>(body);
+            var req = new RestRequest("/api/user/getDetailsByEmail");
+            UserDetailsByEmailRequest body = new UserDetailsByEmailRequest();
+            body.Email = email;
+            req.AddJsonBody<UserDetailsByEmailRequest>(body);
 
             var res = await client.PostAsync<UserDetailsResponse>(req);
             if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
@@ -62,14 +62,36 @@ namespace RealworldWeb.Caller
             return new UserDetailsResponseElement(); // null
         }
 
-        public async Task<UserDetailsResponseElement> GetUserDetailsByUsernameAsync(string email)
+        public async Task<UserDetailsResponseElement> GetUserDetailsByUsernameAsync(string username)
         {
-            throw new NotImplementedException();
+            var req = new RestRequest("/api/user/getDetailsByUsername");
+            UserDetailsByUsernameRequest body = new UserDetailsByUsernameRequest();
+            body.Username = username;
+            req.AddJsonBody<UserDetailsByUsernameRequest>(body);
+
+            var res = await client.PostAsync<UserDetailsResponse>(req);
+            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            {
+                return res.User;
+            }
+            //
+            return new UserDetailsResponseElement(); // null
         }
 
         public async Task<UserDetailsResponseElement> GetUserDetailsByIdAsync(int userid)
         {
-            throw new NotImplementedException();
+            var req = new RestRequest("/api/user/getDetailsById");
+            UserDetailsByIdRequest body = new UserDetailsByIdRequest();
+            body.Id = userid;
+            req.AddJsonBody<UserDetailsByIdRequest>(body);
+
+            var res = await client.PostAsync<UserDetailsResponse>(req);
+            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            {
+                return res.User;
+            }
+            //
+            return new UserDetailsResponseElement(); // null
         }
 
 

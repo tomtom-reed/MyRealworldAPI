@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using RealworldWeb.Utils;
 
 namespace RealworldApi.Web.Security
 {
@@ -19,22 +21,24 @@ namespace RealworldApi.Web.Security
     {
         string GetToken(int userId);
         int? GetIdFromAuthedUser(ClaimsPrincipal user);
-        ClaimsPrincipal? ValidateToken(string token);
+        Task<ClaimsPrincipal?> ValidateToken(string token);
     }
     public class TokenUtils : ITokenUtils
     {
         // https://dotnetcorecentral.com/blog/authentication-handler-in-asp-net-core/
         //private readonly byte[] tokenKey;
-        SymmetricSecurityKey cryptokey;
-        SymmetricSecurityKey signingkey;
+        private RsaSecurityKey cryptokey_public;
+        private RsaSecurityKey cryptokey_private;
+        private SymmetricSecurityKey signingkey;
+        private int expirationHours;
 
-        public TokenUtils(SymmetricSecurityKey encryptKey, SymmetricSecurityKey signingkey)
+        public TokenUtils(WebConfiguration configuration)
         {
             //Console.WriteLine("TokenUtils constructor, tokenKey = " + Encoding.UTF8.GetString(tokenKey));
-            this.cryptokey = encryptKey;
-            this.signingkey = signingkey;
-            //TokenKey = Convert.FromHexString(configuration.GetValue<string>("JWT:KeyHex")); // checked in Program.cs
-            this.signingkey = signingkey;
+            this.cryptokey_public = configuration.JWT_CryptoKey_Public;
+            this.cryptokey_private = configuration.JWT_CryptoKey_Private;
+            this.signingkey = configuration.JWT_SigningKey;
+            this.expirationHours = configuration.JWT_ExpirationHours;
         }
 
         public int? GetIdFromAuthedUser(ClaimsPrincipal user)
@@ -56,9 +60,11 @@ namespace RealworldApi.Web.Security
             return null;
         }
 
-        public ClaimsPrincipal? ValidateToken(string token)
+        public async Task<ClaimsPrincipal?> ValidateToken(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
+            Console.WriteLine("Validating token: " + token);
+            var tokenHandler = new JsonWebTokenHandler();
+            //JsonWebTokenHandler jwthandler = new JsonWebTokenHandler();
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -72,18 +78,23 @@ namespace RealworldApi.Web.Security
                 RequireExpirationTime = true,
                 ClockSkew = TimeSpan.Zero,
 
-                IssuerSigningKey = cryptokey, // TODO shouldn't use the same credentials for both signing and encryption
-                TokenDecryptionKey = cryptokey,
-                ValidateIssuerSigningKey = true,
-                ValidateTokenReplay = true,
+                //IssuerSigningKey = signingkey,
+                TokenDecryptionKey = cryptokey_private,
+                RequireSignedTokens = false, // DO NOT DO THIS
+                //ValidateIssuerSigningKey = true,
+                ValidateTokenReplay = false, // TODO? 
                 ValidateActor = true,
-                RequireSignedTokens = true,
+                //RequireSignedTokens = true,
             };
             try
             {
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
-                return principal;
-                //return GetIdFromAuthedUser(principal);
+                //var parsedToken = tokenHandler.ReadToken(token);
+                var principal = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+                foreach (var claim in principal.Claims)
+                {
+                    Console.WriteLine("Claim: " + claim.Key + " = " + claim.Value);
+                }
+                return new ClaimsPrincipal(principal.ClaimsIdentity);
             }
             catch (Exception e)
             {
@@ -98,31 +109,38 @@ namespace RealworldApi.Web.Security
             {
                 return null;
             }
-            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenHandler = new JsonWebTokenHandler(); //JwtSecurityTokenHandler
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Audience = "MyAudience",
                 Issuer = "MyIssuer",
 
-                Claims = new Dictionary<string, object>
-                {
-                    ["id"] = userid,
-                },
+                //Claims = new Dictionary<string, object>
+                //{
+                //    ["id"] = userid,
+                //},
 
-                Expires = DateTime.UtcNow.AddHours(12), // TODO reduce to 1
+                Subject = new ClaimsIdentity(new List<Claim> { new Claim("id", userid.ToString()) }),
+
+                Expires = DateTime.UtcNow.AddHours(expirationHours),
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
 
-                SigningCredentials = new SigningCredentials(
-                    cryptokey,
-                    SecurityAlgorithms.HmacSha256Signature),
+                //SigningCredentials = new SigningCredentials(
+                //    signingkey,
+                //    SecurityAlgorithms.HmacSha256Signature),
+                //EncryptingCredentials = new EncryptingCredentials(
+                //    cryptokey,
+                //    SecurityAlgorithms.Aes256Gcm,
+                //    SecurityAlgorithms.Aes128CbcHmacSha256)
                 EncryptingCredentials = new EncryptingCredentials(
-                    cryptokey,
-                    SecurityAlgorithms.Aes128KW,
-                    SecurityAlgorithms.Aes128CbcHmacSha256)
+                    cryptokey_public, SecurityAlgorithms.RsaOAEP, SecurityAlgorithms.Aes256CbcHmacSha512)
             };
-            var jwtSecurityToken = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
-            return tokenHandler.WriteToken(jwtSecurityToken);
+            //var jwtSecurityToken = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
+            //var jwtSecurityToken = tokenHandler.CreateToken(tokenDescriptor);
+            //return tokenHandler.CreateEncodedJwt(tokenDescriptor);
+            //return tokenHandler.WriteToken(jwtSecurityToken);
+            return tokenHandler.CreateToken(tokenDescriptor);
         }
     }
     /// <summary>
@@ -162,7 +180,7 @@ namespace RealworldApi.Web.Security
                 return AuthenticateResult.Fail("Missing Authorization Header");
             }
 
-            var principal = tokenUtils.ValidateToken(Request.Headers["api_key"]);
+            var principal = await tokenUtils.ValidateToken(Request.Headers["api_key"]);
             if (principal == null)
             {
                 return AuthenticateResult.Fail("Invalid Authorization Header");

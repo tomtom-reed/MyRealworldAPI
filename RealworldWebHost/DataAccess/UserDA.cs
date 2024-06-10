@@ -30,9 +30,11 @@ namespace RealworldWebHost.DataAccess
 
         private string ConnectionString;
         private ISecUtils secUtils;
-        public UserDA(string connectionString)
+        public UserDA(ISecUtils secUtils, string connectionString)
         {
+            Console.WriteLine("UserDA Connection String: " + connectionString);
             this.ConnectionString = connectionString;
+            this.secUtils = secUtils;
         }
 
         private void ExecuteNonQuery(String proc, SqlParameter[] parameters)
@@ -74,7 +76,7 @@ namespace RealworldWebHost.DataAccess
                         cmd.Parameters.Add(new SqlParameter("@emailhash", emailhash));
                         cmd.Parameters.Add(new SqlParameter("@emailcrypt", emailcipher));
                         cmd.Parameters.Add(new SqlParameter("@password", pwhash));
-                        userid = (Int32) cmd.ExecuteScalar();
+                        userid = Convert.ToInt32(cmd.ExecuteScalar());
                     }
                     connection.Close();
                 }

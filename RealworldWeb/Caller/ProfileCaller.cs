@@ -1,5 +1,6 @@
 ﻿using Contracts.Communicator.Request;
 using Contracts.Communicator.Response;
+using RealworldWeb.Utils;
 using RestSharp;
 
 namespace RealworldWeb.Caller
@@ -13,9 +14,9 @@ namespace RealworldWeb.Caller
     public class ProfileCaller : IProfileCaller
     {
         RestClient client;
-        public ProfileCaller(string webhostUrl)
+        public ProfileCaller(WebConfiguration config)
         {
-            var options = new RestClientOptions(webhostUrl);
+            var options = new RestClientOptions(config.Connections_WebHost);
             this.client = new RestClient(options);
         }
 

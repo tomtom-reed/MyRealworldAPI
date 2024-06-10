@@ -178,6 +178,10 @@ namespace RealworldApi.Web.Controllers
             respBody.User.Bio = resp.Bio;
             respBody.User.Image = resp.Image;
             respBody.User.Token = tokenizer.GetToken(resp.UserId);
+            Console.WriteLine("Created Token: " + respBody.User.Token);
+
+            var claims = tokenizer.ValidateToken(respBody.User.Token);
+            Console.WriteLine(claims);
 
             return StatusCode(200, respBody);
         }
