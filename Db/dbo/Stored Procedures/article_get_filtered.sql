@@ -1,12 +1,12 @@
 ﻿-- The logic in this one might be a bit too heavy for a stored procedure
 CREATE PROCEDURE [dbo].[article_get_filtered]
-	@offset int null,
-	@limit int null,
-	@author varchar(50) null, -- Username, not ID
-	@followerId int null,
-	@followerName varchar(50) null, -- Username
-	@tags varchar(MAX) null, -- comma delimited. Inclusive/any. 
-	@slug varchar(50) null
+	@offset int null = null,
+	@limit int null = null,
+	@author varchar(50) null = null, -- Username, not ID
+	@followerId int null = null,
+	@followerName varchar(50) null = null, -- Username
+	@tags varchar(MAX) null = null, -- comma delimited. Inclusive/any. 
+	@slug varchar(50) null = null
 AS
 	If @followerName IS NOT NULL
 	BEGIN
@@ -39,7 +39,7 @@ AS
 	WHERE 
 		(@slug IS NULL OR A.slug = @slug)
 		AND (@author IS NULL OR U.username = @author)
-		AND (@followerId IS NULL OR EXISTS (SELECT 1 FROM [dbo].[Follows] WHERE userId = @followerId AND followedUserId = A.authorId))
+		--AND (@followerId IS NULL OR EXISTS (SELECT 1 FROM [dbo].[Follows] WHERE userId = @followerId AND followedUserId = A.authorId))
 		AND (@tags IS NULL OR EXISTS (SELECT 1 FROM [dbo].[Tags] WHERE slug = A.slug AND tag IN (SELECT value FROM STRING_SPLIT(@tags, ','))))
 	ORDER BY A.createdAt DESC
 	OFFSET ISNULL(@offset, 0) ROWS

@@ -103,7 +103,7 @@ namespace RealworldWeb.Caller
         {
             var req = new RestRequest("api/article/getmany");
             var body = new ArticleGetRequest();
-            //body.Article = request; // Intentionally limited request object
+            // Intentionally limited request object
             body.Article.FollowedById = request.FollowedById;
             body.Article.Offset = request.Offset;
             body.Article.Limit = request.Limit;

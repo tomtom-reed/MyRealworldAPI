@@ -20,6 +20,15 @@ using System.Text.Json;
 
 namespace RealworldApi.Web.Models
 {
+
+    [DataContract]
+    public partial class CreateArticleApiBody
+    {
+        [Required]
+        [DataMember(Name = "article")]
+        public required NewArticle Article { get; set; }
+    }   
+
     /// <summary>
     /// 
     /// </summary>

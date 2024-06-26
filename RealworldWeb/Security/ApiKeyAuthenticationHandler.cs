@@ -62,7 +62,7 @@ namespace RealworldApi.Web.Security
 
         public async Task<ClaimsPrincipal?> ValidateToken(string token)
         {
-            Console.WriteLine("Validating token: " + token);
+            //Console.WriteLine("Validating token: " + token);
             var tokenHandler = new JsonWebTokenHandler();
             //JsonWebTokenHandler jwthandler = new JsonWebTokenHandler();
             var validationParameters = new TokenValidationParameters
@@ -90,10 +90,10 @@ namespace RealworldApi.Web.Security
             {
                 //var parsedToken = tokenHandler.ReadToken(token);
                 var principal = await tokenHandler.ValidateTokenAsync(token, validationParameters);
-                foreach (var claim in principal.Claims)
+                /*foreach (var claim in principal.Claims)
                 {
                     Console.WriteLine("Claim: " + claim.Key + " = " + claim.Value);
-                }
+                }*/
                 return new ClaimsPrincipal(principal.ClaimsIdentity);
             }
             catch (Exception e)
@@ -144,7 +144,7 @@ namespace RealworldApi.Web.Security
         }
     }
     /// <summary>
-    /// class to handle api_key security.
+    /// class to handle Authentication Token security.
     /// </summary>
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
@@ -175,12 +175,18 @@ namespace RealworldApi.Web.Security
             // https://dev.to/kazinix/aspnet-core-custom-token-authentication-2j9a
             // https://dotnetcorecentral.com/blog/authentication-handler-in-asp-net-core/
 
-            if (!Request.Headers.ContainsKey("api_key"))
+            if (!Request.Headers.ContainsKey("Authorization"))
             {
                 return AuthenticateResult.Fail("Missing Authorization Header");
             }
 
-            var principal = await tokenUtils.ValidateToken(Request.Headers["api_key"]);
+            string[] authheader = Request.Headers["Authorization"].ToString().Split(" "); 
+            if (authheader.Length != 2 || authheader[0] != "Token")
+            {
+                return AuthenticateResult.Fail("Invalid Authorization Header");
+            }
+
+            var principal = await tokenUtils.ValidateToken(authheader[1]);
             if (principal == null)
             {
                 return AuthenticateResult.Fail("Invalid Authorization Header");

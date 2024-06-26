@@ -29,14 +29,13 @@ namespace RealworldWeb.Caller
             body.Comment = request;
             req.AddBody(body);
 
-            var res = await client.PostAsync<CommentGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
-            {
-                Console.WriteLine("Comment Created");
-                return res.Comment;
+            var res = await client.PostAsync<CommentCreateResponse>(req);
+            if (res == null || (res.Error != null && res.Error.ErrorCode != CALLER_ERR_CD.SUCCESS)) {                 
+                Console.WriteLine("Call to CreateComment failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+                return null;
             }
-            Console.WriteLine("Call to CreateComment failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
-            return null;
+            Console.WriteLine("Comment Created with ID: " + res.CommentId);
+            return await this.GetComment(request.ArticleSlug, res.CommentId, request.AuthorId);
         }
 
         public async Task<string> DeleteComment(CommentDeleteContract request)

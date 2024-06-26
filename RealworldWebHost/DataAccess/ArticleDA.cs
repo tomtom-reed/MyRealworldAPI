@@ -76,7 +76,7 @@ namespace RealworldWebHost.DataAccess
                     using (SqlCommand cmd = new SqlCommand(PROC_ARTICLE_CREATE, connection) { CommandType = System.Data.CommandType.StoredProcedure })
                     {
                         cmd.Parameters.AddWithValue("@slug", slug); // thank you copilot 
-                        cmd.Parameters.AddWithValue("@author_id", article.AuthorId);
+                        cmd.Parameters.AddWithValue("@userId", article.AuthorId);
                         cmd.Parameters.AddWithValue("@title", article.Title);
                         cmd.Parameters.AddWithValue("@description", article.Description);
                         cmd.Parameters.AddWithValue("@body", article.Body);
@@ -164,7 +164,7 @@ namespace RealworldWebHost.DataAccess
                     using (SqlCommand cmd = new SqlCommand(PROC_ARTICLE_GET_FILTERED, connection) { CommandType = System.Data.CommandType.StoredProcedure })
                     {
                         cmd.Parameters.AddWithValue("@slug", slug);
-                        cmd.Parameters.AddWithValue("@follower", followerId);
+                        cmd.Parameters.AddWithValue("@followerId", followerId);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
@@ -176,7 +176,7 @@ namespace RealworldWebHost.DataAccess
                 }
             } catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("GetArticle Failure: " + ex.Message);
             }
             return null;
         }
@@ -221,15 +221,15 @@ namespace RealworldWebHost.DataAccess
             response.Title = Convert.ToString(reader["title"]) ?? "";
             response.Description = Convert.ToString(reader["description"]) ?? "";
             response.Body = Convert.ToString(reader["body"]) ?? "";
-            response.CreatedAt = Convert.ToDateTime(reader["created_at"]);
-            response.UpdatedAt = Convert.ToDateTime(reader["updated_at"]);
+            response.CreatedAt = Convert.ToDateTime(reader["createdAt"]);
+            response.UpdatedAt = Convert.ToDateTime(reader["updatedAt"]);
             response.Favorited = Convert.ToBoolean(reader["favorited"]);
-            response.FavoritesCount = Convert.ToInt32(reader["favorites_count"]);
+            response.FavoritesCount = Convert.ToInt32(reader["favoritesCount"]);
             response.Author.Username = Convert.ToString(reader["authorUsername"]) ?? "";
             response.Author.Bio = Convert.ToString(reader["authorBio"]) ?? "";
             response.Author.Image = Convert.ToString(reader["authorImg"]) ?? "";
             response.Author.Following = Convert.ToBoolean(reader["following"]);
-            response.Tags = (Convert.ToString(reader["tags"]) ?? "").Split(',').ToList();
+            response.Tags = (Convert.ToString(reader["tagList"]) ?? "").Split(',').ToList();
             return response;
         }
 

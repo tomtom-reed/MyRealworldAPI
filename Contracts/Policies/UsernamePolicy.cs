@@ -14,15 +14,15 @@ namespace Contracts.Policies
     internal class UsernamePolicy
     {
         private static int minLength = 3;
-        private static int maxLength = 40;
+        private static int maxLength = 50;
 
         public static bool ValidateAgainstUsernamePolicy(string username)
         {
             if (username == null) {
                 return false;
             }
-            if (username.Length <= UsernamePolicy.minLength) { return false; }
-            if (username.Length >= UsernamePolicy.maxLength) { return false; }
+            if (username.Length < UsernamePolicy.minLength) { return false; }
+            if (username.Length > UsernamePolicy.maxLength) { return false; }
             return true;
         }
     }

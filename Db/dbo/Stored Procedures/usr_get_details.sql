@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[usr_get_details]
-	@email varchar(50) = null,
+	@email BINARY(64) = null,
 	@username varchar(50) = null,
 	@userid int = null
 AS

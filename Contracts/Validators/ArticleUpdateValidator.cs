@@ -51,17 +51,19 @@ namespace Contracts.Validators
                 this.error = ErrorTypes.Err_ArticleBody;
                 return false;
             }
-            if (this.article.Tags != null)
+            if (this.article.Tags != null && this.article.Tags.Count > 0)
             {
-                // Tags are allowed to be missing, but each tag needs validation
-                foreach (string tag in this.article.Tags)
+                // Update article does not allow tags to be updated
+                this.error = ErrorTypes.Err_ArticleTags;
+                return false;
+                /*foreach (string tag in this.article.Tags)
                 {
                     if (string.IsNullOrEmpty(tag) || tag.Length < ArticlePolicy.MIN_TAG_LENGTH || tag.Length > ArticlePolicy.MAX_TAG_LENGTH)
                     {
                         this.error = ErrorTypes.Err_ArticleTags;
                         return false;
                     }
-                }
+                }*/
             }
             this.error = ErrorTypes.Valid;
             return true;

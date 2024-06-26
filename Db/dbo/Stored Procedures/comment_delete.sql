@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[comment_delete]
-	@articleSlug varchar(50),
+	@articleSlug char(44),
 	@commentId int,
 	@authorId int
 AS

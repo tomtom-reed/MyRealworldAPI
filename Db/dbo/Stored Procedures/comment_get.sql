@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[comment_get]
-	@slug varchar(50),
+	@slug char(44),
 	@commentId int null,
 	@userid int null
 AS

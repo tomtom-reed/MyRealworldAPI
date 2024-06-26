@@ -23,7 +23,7 @@ namespace Contracts.Communicator.Request
     public class ArticleGetContract
     {
         [DataMember]
-        public string Slug { get; set; }
+        public string? Slug { get; set; }
 
         [DataMember]
         public string? Authorname { get; set; }

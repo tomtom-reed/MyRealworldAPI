@@ -1,7 +1,7 @@
 CREATE PROCEDURE [dbo].[article_create]
-	@slug        VARCHAR (50),
-	@title       VARCHAR (50),
-	@description VARCHAR (50),
+	@slug        CHAR (44),
+	@title       VARCHAR (140),
+	@description VARCHAR (400),
 	@body        TEXT,
 	-- multiple tags, done using comma delimited 
 	@tags        VARCHAR (MAX) = NULL,

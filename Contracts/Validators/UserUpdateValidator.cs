@@ -51,6 +51,16 @@ namespace Contracts.Validators
                 err = ErrorTypes.Err_PasswordPolicy;
                 return false;
             }
+            /*if (req.Bio != null && !BioPolicy.ValidateAgainstBioPolicy(req.Bio))
+            {
+                err = ErrorTypes.Err_UserBioPolicy;
+                return false;
+            }*/
+            if (req.Image != null && !ImagePolicy.ValidateAgainstImagePolicy(req.Image))
+            {
+                err = ErrorTypes.Err_UserImagePolicy;
+                return false;
+            }
 
             // Image and Bio are allowed to be empty string
             err = ErrorTypes.Valid;

@@ -16,7 +16,7 @@ namespace Contracts.Models
             this.Message = message;
         }
         public int ID { get; set; }
-        public string Message { get; set; }
+        public string Message { get; set; } = "";
 
         public override string ToString()
         {
@@ -48,6 +48,8 @@ namespace Contracts.Models
 
         public static readonly ErrorDetails Err_PasswordMissing = new ErrorDetails(321, "Password is required");
         public static readonly ErrorDetails Err_PasswordPolicy = new ErrorDetails(322, "Password does not fit policy");
+        public static readonly ErrorDetails Err_UserBioPolicy = new ErrorDetails(323, "Bio does not fit policy");
+        public static readonly ErrorDetails Err_UserImagePolicy = new ErrorDetails(324, "Image does not fit policy");
 
         public static readonly ErrorDetails Err_ArticleSlug = new ErrorDetails(409, "Invalid Article Slug");
         public static readonly ErrorDetails Err_ArticleAuthorId = new ErrorDetails(410, "Invalid Article Author");

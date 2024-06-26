@@ -77,8 +77,9 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("CreateArticle")]
         [SwaggerResponse(statusCode: 201, type: typeof(InlineResponse201), description: "Single article")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual async Task<IActionResult> CreateArticle([FromBody]NewArticle body)
+        public virtual async Task<IActionResult> CreateArticle([FromBody]CreateArticleApiBody body)
         {
+            Console.WriteLine("CreateArticle called");
             int? userid = tokenizer.GetIdFromAuthedUser(User);
             if (userid == null)
             {
@@ -86,18 +87,22 @@ namespace RealworldApi.Web.Controllers
                 return StatusCode(401);
             }
             var article = new ArticleCreateContract();
-            article.Title = body.Title;
-            article.Body = body.Body;
+            article.Title = body.Article.Title;
+            article.Description = body.Article.Description;
+            article.Body = body.Article.Body;
+            article.Tags = body.Article.TagList;
             article.AuthorId = (int)userid;
 
             var validator = new CreateArticleValidator(article);
             if (!validator.Validate())
             {
+                Console.WriteLine("WebHost.CreateArticle validation failure: " + validator.GetError().ToString());
                 return StatusCode(422, default(GenericErrorModel));
             }
             var aresp = await caller.CreateArticle(article);
             if (aresp == null)
             {
+                Console.WriteLine("CreateArticle failed");
                 return StatusCode(422, default(GenericErrorModel));
             }
             InlineResponse201 resp = new InlineResponse201();
@@ -322,7 +327,7 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("UpdateArticle")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse201), description: "Single article")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual async Task<IActionResult> UpdateArticle([FromBody]Article body, [FromRoute][Required]string slug)
+        public virtual async Task<IActionResult> UpdateArticle([FromBody]UpdateArticleApiBody body, [FromRoute][Required]string slug)
         {
             int? userid = tokenizer.GetIdFromAuthedUser(User);
             if (userid == null)
@@ -332,10 +337,10 @@ namespace RealworldApi.Web.Controllers
             }
             ArticleUpdateContract contract = new ArticleUpdateContract();
             contract.Slug = slug;
-            contract.Title = body.Title;
-            contract.Body = body.Body;
-            contract.Description = body.Description;
-            contract.Tags = body.TagList;
+            contract.Title = body.Article.Title;
+            contract.Description = body.Article.Description;
+            contract.Body = body.Article.Body;
+            //contract.Tags = body.TagList; // Update does not allow tags to be updated
             contract.AuthorId = userid.Value;
             var validator = new ArticleUpdateValidator(contract);
             if (!validator.Validate())

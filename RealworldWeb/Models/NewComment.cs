@@ -20,6 +20,14 @@ using System.Text.Json;
 
 namespace RealworldApi.Web.Models
 {
+    [DataContract]
+    public partial class CreateCommentApiBody
+    {
+        [Required]
+        [DataMember(Name = "comment")]
+        public required NewComment Comment { get; set; }
+    }
+
     /// <summary>
     /// 
     /// </summary>

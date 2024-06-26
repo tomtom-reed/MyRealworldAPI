@@ -20,6 +20,14 @@ using System.Text.Json;
 
 namespace RealworldApi.Web.Models
 {
+    [DataContract]
+    public partial class LoginUserApiBody
+    {
+        [Required]
+        [DataMember(Name = "user")]
+        public required LoginUser User { get; set; }
+    }
+
     /// <summary>
     /// 
     /// </summary>

@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[comment_create]
 	@authorId int,
-	@articleSlug varchar(50),
+	@articleSlug char(44),
 	@body text,
 	@commentId int OUTPUT
 AS
@@ -10,21 +10,21 @@ AS
 			VALUES (@authorId, @articleSlug, @body, GETUTCDATE(), GETUTCDATE());
 		IF @@ROWCOUNT = 0
 			THROW 50000, 'Failed to create Comment', 1;
+		DECLARE @createdCommentId int;
+		DECLARE @articleCommentId int;
+		SET @createdCommentId = SCOPE_IDENTITY();
+		SET @articleCommentId = ISNULL((SELECT MAX(Id) + 1 FROM ArticleComments WHERE articleSlug = @articleSlug), 0);
 		INSERT INTO ArticleComments (Id, articleSlug, commentId) 
-			VALUES ((SELECT MAX(Id)+1 FROM ArticleComments WHERE articleSlug = @articleSlug and commentId = SCOPE_IDENTITY()), 
-				@articleSlug, 
-				SCOPE_IDENTITY());
+			VALUES (ISNULL(@articleCommentId, 0), @articleSlug, @createdCommentId);
+		SELECT @commentId = @articleCommentId;
 		IF @@ROWCOUNT = 0
 			THROW 50000, 'Failed to create ArticleComment', 1;
 		COMMIT TRANSACTION;
 	END TRY 
 	BEGIN CATCH 
 		ROLLBACK TRANSACTION;
-		SELECT ERROR_MESSAGE() AS ErrorMessage;
-		RETURN 1;
+		THROW;
 	END CATCH;
-	SET @commentId = SCOPE_IDENTITY();
-	RETURN 0;
 GO
 
 --So this one's actually a pain
@@ -32,4 +32,5 @@ GO
 --You can't just use commentId because it's not unique across articles.
 --So we need to insert the comment, get the ID, and then insert the article-comment relationship using MAX()+1 as the ID in ArticleComments.
 --Not count. Comments can be deleted, so we can't rely on the count of comments to be the ID.
+--And we can't just mark them as deleted because PII burden and probably GDPR or something.
 --Thank you for coming to my TED talk (Copilot's fault)

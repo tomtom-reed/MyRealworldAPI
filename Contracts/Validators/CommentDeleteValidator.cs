@@ -31,7 +31,7 @@ namespace Contracts.Validators
                 this.error = ErrorTypes.Err_CommentAuthorId;
                 return false;
             }
-            if (comment.CommentId == null || comment.CommentId.Value <= 0)
+            if (comment.CommentId == null || comment.CommentId.Value < 0)
             {
                 this.error = ErrorTypes.Err_CommentId;
                 return false;

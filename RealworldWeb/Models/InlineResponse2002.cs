@@ -25,14 +25,14 @@ namespace RealworldApi.Web.Models
     /// </summary>
     [DataContract]
     public partial class InlineResponse2002 : IEquatable<InlineResponse2002>
-    { 
+    {
         /// <summary>
         /// Gets or Sets Articles
         /// </summary>
         [Required]
 
-        [DataMember(Name="articles")]
-        public List<Article> Articles { get; set; }
+        [DataMember(Name = "articles")]
+        public List<Article> Articles { get; set; } = new List<Article>();
 
         /// <summary>
         /// Gets or Sets ArticlesCount

@@ -68,13 +68,13 @@ namespace RealworldApi.Web.Controllers
         [SwaggerResponse(statusCode: 201, type: typeof(InlineResponse200), description: "User")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
         [AllowAnonymous]
-        public async Task<IActionResult> CreateUser([FromBody]NewUser body)
+        public async Task<IActionResult> CreateUser([FromBody]CreateUserApiBody body)
         {
             //UserContract usr = new UserContract();
             UserCreateContract usr = new UserCreateContract();
-            usr.Email = body.Email;
-            usr.Username = body.Username;
-            usr.Password = body.Password;
+            usr.Email = body.User.Email;
+            usr.Username = body.User.Username;
+            usr.Password = body.User.Password;
 
             var validator = new CreateUserValidator(usr);
             if (!validator.Validate())
@@ -153,11 +153,11 @@ namespace RealworldApi.Web.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse200), description: "User")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody]LoginUser body)
+        public async Task<IActionResult> Login([FromBody]LoginUserApiBody body)
         {
             LoginContract req = new LoginContract();
-            req.Email = body.Email;
-            req.Password = body.Password;
+            req.Email = body.User.Email;
+            req.Password = body.User.Password;
             UserLoginValidator validator = new UserLoginValidator(req);
             if (!validator.Validate())
             {
@@ -201,7 +201,7 @@ namespace RealworldApi.Web.Controllers
         [SwaggerOperation("UpdateCurrentUser")]
         [SwaggerResponse(statusCode: 200, type: typeof(InlineResponse200), description: "User")]
         [SwaggerResponse(statusCode: 422, type: typeof(GenericErrorModel), description: "Unexpected error")]
-        public virtual async Task<IActionResult> UpdateCurrentUser([FromBody]UpdateUser body)
+        public virtual async Task<IActionResult> UpdateCurrentUser([FromBody]UpdateUserApiBody body)
         {
             // Step 1: Get the token 
             int? userid = tokenizer.GetIdFromAuthedUser(User);
@@ -216,11 +216,11 @@ namespace RealworldApi.Web.Controllers
             //      null || policy
             UserUpdateContract req = new UserUpdateContract();
             req.UserId = userid.Value;
-            req.Email = body.Email;
-            req.Username = body.Username;
-            req.Password = body.Password;
-            req.Bio = body.Bio;
-            req.Image = body.Image;
+            req.Email = body.User.Email;
+            req.Username = body.User.Username;
+            req.Password = body.User.Password;
+            req.Bio = body.User.Bio;
+            req.Image = body.User.Image;
             UserUpdateValidator validator = new UserUpdateValidator(req);
             if (!validator.Validate())
             {

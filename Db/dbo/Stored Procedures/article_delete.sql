@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[article_delete]
-	@slug VARCHAR (50),
+	@slug CHAR (44),
 	@author_id INT
 AS
 	BEGIN

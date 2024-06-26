@@ -34,8 +34,8 @@ namespace RealworldWebHost.DataAccess
                     connection.Open();
                     using (SqlCommand cmd = new SqlCommand(PROC_COMMENT_CREATE, connection) { CommandType = System.Data.CommandType.StoredProcedure })
                     {
-                        cmd.Parameters.Add(new SqlParameter("@slug", slug));
                         cmd.Parameters.Add(new SqlParameter("@authorId", authorId));
+                        cmd.Parameters.Add(new SqlParameter("@articleSlug", slug));
                         cmd.Parameters.Add(new SqlParameter("@body", body));
                         var _commentId = new SqlParameter("@commentId", System.Data.SqlDbType.Int);
                         _commentId.Direction = System.Data.ParameterDirection.Output;
@@ -51,7 +51,7 @@ namespace RealworldWebHost.DataAccess
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("CommentDA.CreateComment exception: " + ex.Message);
                 return -1;
             }
             return commentId;
@@ -119,7 +119,7 @@ namespace RealworldWebHost.DataAccess
         public CommentGetResponseContract GetById(string slug, int commentId, int? followerId)
         {
             {
-                List<CommentGetResponseContract> comments = new List<CommentGetResponseContract>();
+                //List<CommentGetResponseContract> comments = new List<CommentGetResponseContract>();
                 try
                 {
                     using (SqlConnection connection = new SqlConnection(this.connectionString))

@@ -1,8 +1,8 @@
 ﻿CREATE PROCEDURE [dbo].[article_update]
-	@slug		VARCHAR (50),
+	@slug		CHAR (44),
 	@authorId	INT,
-	@title		VARCHAR (50) null,
-	@description	VARCHAR (50) null,
+	@title		VARCHAR (140) null,
+	@description	VARCHAR (200) null,
 	@body		TEXT null
 AS
 	IF (NOT EXISTS(SELECT 1 FROM Articles WHERE slug = @slug AND authorId = @authorId))
