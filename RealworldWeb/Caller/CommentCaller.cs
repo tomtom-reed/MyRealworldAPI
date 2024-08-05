@@ -29,13 +29,21 @@ namespace RealworldWeb.Caller
             body.Comment = request;
             req.AddBody(body);
 
-            var res = await client.PostAsync<CommentCreateResponse>(req);
-            if (res == null || (res.Error != null && res.Error.ErrorCode != CALLER_ERR_CD.SUCCESS)) {                 
+            try
+            {
+                var res = await client.PostAsync<CommentCreateResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Comment Created with ID: " + res.CommentId);
+                    return await this.GetComment(request.ArticleSlug, res.CommentId, request.AuthorId);
+                }
                 Console.WriteLine("Call to CreateComment failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
-                return null;
             }
-            Console.WriteLine("Comment Created with ID: " + res.CommentId);
-            return await this.GetComment(request.ArticleSlug, res.CommentId, request.AuthorId);
+            catch (Exception e)
+            {
+                Console.WriteLine("CreateComment failed: " + e.Message);
+            }
+            return null;
         }
 
         public async Task<string> DeleteComment(CommentDeleteContract request)
@@ -45,11 +53,18 @@ namespace RealworldWeb.Caller
             body.Comment = request;
             req.AddBody(body);
 
-            var res = await client.PostAsync<CommentDeleteResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Comment Deleted");
-                return "Success";
+                var res = await client.PostAsync<CommentDeleteResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Comment Deleted");
+                    return "Success";
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("DeleteComment failed: " + e.Message);
             }
             return null;
         }
@@ -62,13 +77,20 @@ namespace RealworldWeb.Caller
             body.Comment.FollowerId = userid;
             req.AddBody(body);
 
-            var res = await client.PostAsync<CommentsGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Comments retrieved");
-                return res.Comments;
+                var res = await client.PostAsync<CommentsGetResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Comments retrieved");
+                    return res.Comments;
+                }
+                Console.WriteLine("Call to CreateComment failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to CreateComment failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("GetAllComments failed: " + e.Message);
+            }
             return null;
         }
 
@@ -81,13 +103,20 @@ namespace RealworldWeb.Caller
             body.Comment.FollowerId = userid;
             req.AddBody(body);
 
-            var res = await client.PostAsync<CommentGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Comment retrieved");
-                return res.Comment;
+                var res = await client.PostAsync<CommentGetResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Comment retrieved");
+                    return res.Comment;
+                }
+                Console.WriteLine("Call to CreateComment failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to CreateComment failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("GetComment failed: " + e.Message);
+            }
             return null;
         }
     }

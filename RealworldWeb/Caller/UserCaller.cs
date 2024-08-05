@@ -35,14 +35,20 @@ namespace RealworldWeb.Caller
             body.Login = login;
             req.AddBody(body);
 
-            var res = await client.PostAsync<UserDetailsResponse>(req);
-
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Login Success");
-                return res.User;
-            } 
-            Console.WriteLine("Call to Login failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+                var res = await client.PostAsync<UserDetailsResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Login Success");
+                    return res.User;
+                }
+                Console.WriteLine("Call to Login failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Login failed: " + e.Message);
+            }
             return null;
         }
 
@@ -52,11 +58,16 @@ namespace RealworldWeb.Caller
             UserDetailsByEmailRequest body = new UserDetailsByEmailRequest();
             body.Email = email;
             req.AddJsonBody<UserDetailsByEmailRequest>(body);
-
-            var res = await client.PostAsync<UserDetailsResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                return res.User;
+                var res = await client.PostAsync<UserDetailsResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    return res.User;
+                }
+            } catch (Exception e)
+            {
+                Console.WriteLine("GetUserDetailsByEmailAsync failed: " + e.Message);
             }
             //
             return new UserDetailsResponseElement(); // null
@@ -68,11 +79,17 @@ namespace RealworldWeb.Caller
             UserDetailsByUsernameRequest body = new UserDetailsByUsernameRequest();
             body.Username = username;
             req.AddJsonBody<UserDetailsByUsernameRequest>(body);
-
-            var res = await client.PostAsync<UserDetailsResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                return res.User;
+                var res = await client.PostAsync<UserDetailsResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    return res.User;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("GetUserDetailsByUsernameAsync failed: " + e.Message);
             }
             //
             return new UserDetailsResponseElement(); // null
@@ -84,11 +101,17 @@ namespace RealworldWeb.Caller
             UserDetailsByIdRequest body = new UserDetailsByIdRequest();
             body.Id = userid;
             req.AddJsonBody<UserDetailsByIdRequest>(body);
-
-            var res = await client.PostAsync<UserDetailsResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                return res.User;
+                var res = await client.PostAsync<UserDetailsResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    return res.User;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("GetUserDetailsByIdAsync failed: " + e.Message);
             }
             //
             return new UserDetailsResponseElement(); // null
@@ -104,10 +127,17 @@ namespace RealworldWeb.Caller
             body.User = user;
             req.AddJsonBody<UserCreateRequest>(body);
 
-            var res = await client.PostAsync<UserCreateResponse> (req);
-            if (res != null && res.Error != null && res.Error.ErrorCode != CALLER_ERR_CD.SUCCESS)
+            try
             {
-                return true;
+                var res = await client.PostAsync<UserCreateResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("CreateUserAsync failed: " + e.Message);
             }
             return false;
         }
@@ -119,10 +149,17 @@ namespace RealworldWeb.Caller
 
             var req = new RestRequest("/api/user/update");
             req.AddBody(body);
-            var res = await client.PostAsync<UserDetailsResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                return res.User;
+                var res = await client.PostAsync<UserDetailsResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    return res.User;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("UpdateUser failed: " + e.Message);
             }
             //
             return new UserDetailsResponseElement(); // null

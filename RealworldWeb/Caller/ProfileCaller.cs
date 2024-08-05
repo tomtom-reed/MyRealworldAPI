@@ -27,13 +27,20 @@ namespace RealworldWeb.Caller
             body.Profile = request;
             req.AddBody(request);
 
-            var res = await client.PostAsync<ProfileGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("GetProfile Success");
-                return res.Profile;
+                var res = await client.PostAsync<ProfileGetResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("GetProfile Success");
+                    return res.Profile;
+                }
+                Console.WriteLine("Call to GetProfile failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to GetProfile failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("GetProfile failed: " + e.Message);
+            }
             return null;
         }
 
@@ -44,13 +51,20 @@ namespace RealworldWeb.Caller
             body.Contract = request;
             req.AddBody(request);
 
-            var res = await client.PostAsync<ProfileGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Follow Success");
-                return res.Profile;
+                var res = await client.PostAsync<ProfileGetResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Follow Success");
+                    return res.Profile;
+                }
+                Console.WriteLine("Call to Follow failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to Follow failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("Follow failed: " + e.Message);
+            }
             return null;
         }
 
@@ -61,13 +75,20 @@ namespace RealworldWeb.Caller
             body.Contract = request;
             req.AddBody(request);
 
-            var res = await client.PostAsync<ProfileGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Follow Success");
-                return res.Profile;
+                var res = await client.PostAsync<ProfileGetResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Follow Success");
+                    return res.Profile;
+                }
+                Console.WriteLine("Call to Follow failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to Follow failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("Follow failed: " + e.Message);
+            }
             return null;
         }
     }

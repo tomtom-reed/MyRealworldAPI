@@ -32,15 +32,21 @@ namespace RealworldWeb.Caller
             var body = new ArticleCreateRequest();
             body.Article = request;
             req.AddBody(body);
-
-            var res = await client.PostAsync<ArticleCreateResponse>(req);
-
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Create Article Success");
-                return res.Article;
+                var res = await client.PostAsync<ArticleCreateResponse>(req);
+
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Create Article Success");
+                    return res.Article;
+                }
+                Console.WriteLine("Call to Create Article failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to Create Article failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("CreateArticle failed: " + e.Message);
+            }
             return null;
         }
 
@@ -50,15 +56,21 @@ namespace RealworldWeb.Caller
             var body = new ArticleUpdateRequest();
             body.Article = request;
             req.AddBody(body);
-
-            var res = await client.PostAsync<ArticleUpdateResponse>(req);
-
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Create Article Success");
-                return res.Article;
+                var res = await client.PostAsync<ArticleUpdateResponse>(req);
+
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Create Article Success");
+                    return res.Article;
+                }
+                Console.WriteLine("Call to Create Article failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to Create Article failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("CreateArticle failed: " + e.Message);
+            }
             return null;
         }
 
@@ -68,15 +80,20 @@ namespace RealworldWeb.Caller
             var body = new ArticleDeleteRequest();
             body.Contract = contract;
             req.AddBody(body);
-
-            var res = await client.PostAsync<ArticleDeleteResponse>(req);
-
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Delete Article Success");
-                return res.Success;
+                var res = await client.PostAsync<ArticleDeleteResponse>(req);
+
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Delete Article Success");
+                    return res.Success;
+                }
+                Console.WriteLine("Call to Delete Article failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            } catch (Exception e)
+            {
+                Console.WriteLine("DeleteArticle failed: " + e.Message);
             }
-            Console.WriteLine("Call to Delete Article failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             return false;
         }
 
@@ -87,15 +104,21 @@ namespace RealworldWeb.Caller
             body.Article.Slug = slug;
             body.Article.FollowedById = userid;
             req.AddBody(body);
-
-            var res = await client.PostAsync<ArticleGetResponse>(req);
-
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("GetArticle Success");
-                return res.Article;
+                var res = await client.PostAsync<ArticleGetResponse>(req);
+
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("GetArticle Success");
+                    return res.Article;
+                }
+                Console.WriteLine("Call to GetArticle failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to GetArticle failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("GetArticle failed: " + e.Message);
+            }
             return null;
         }
 
@@ -108,15 +131,21 @@ namespace RealworldWeb.Caller
             body.Article.Offset = request.Offset;
             body.Article.Limit = request.Limit;
             req.AddBody(body);
-
-            var res = await client.PostAsync<ArticleGetMultipleResponse>(req);
-
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("GetArticlesByFeed Success");
-                return res.Articles;
+                var res = await client.PostAsync<ArticleGetMultipleResponse>(req);
+
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("GetArticlesByFeed Success");
+                    return res.Articles;
+                }
+                Console.WriteLine("Call to GetArticlesByFeed failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to GetArticlesByFeed failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("GetArticlesByFeed failed: " + e.Message);
+            }
             return null;
         }
 
@@ -128,13 +157,19 @@ namespace RealworldWeb.Caller
             req.AddBody(body);
 
             var res = await client.PostAsync<ArticleGetMultipleResponse>(req);
-
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("GetArticlesFiltered Success");
-                return res.Articles;
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("GetArticlesFiltered Success");
+                    return res.Articles;
+                }
+                Console.WriteLine("Call to GetArticlesFiltered failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
             }
-            Console.WriteLine("Call to GetArticlesFiltered failed" + ((res != null && res.Error != null) ? " with error: " + res.Error.ErrorMessage : ""));
+            catch (Exception e)
+            {
+                Console.WriteLine("GetArticlesFiltered failed: " + e.Message);
+            }
             return null;
         }
     }

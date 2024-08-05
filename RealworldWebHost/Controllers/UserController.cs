@@ -39,12 +39,12 @@ namespace RealworldWebHost.Controllers
 
             if (newUserId >= 0)
             {
-                return new ObjectResult(GetUserDetails(newUserId));
+                return StatusCode(200, new UserCreateResponse(CALLER_ERR_CD.SUCCESS, ""));
             }
             else
             {
                 // error handling 
-                return StatusCode(400, new UserDetailsResponse());
+                return StatusCode(400, new UserCreateResponse(CALLER_ERR_CD.GENERIC_ERROR, "Failed to create user"));
             }
 
             //string exampleJson = null;

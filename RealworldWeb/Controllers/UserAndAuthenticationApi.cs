@@ -84,7 +84,7 @@ namespace RealworldApi.Web.Controllers
             }
             // call WebHost
             var createSuccess = await caller.CreateUserAsync(usr);
-            if (createSuccess) {
+            if (!createSuccess) {
                 return StatusCode(422, default(GenericErrorModel));
             }
             UserDetailsResponseElement deetsResp = await caller.GetUserDetailsByEmailAsync(usr.Email);

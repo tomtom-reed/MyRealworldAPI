@@ -9,13 +9,13 @@ namespace RealworldWebHost.Models
         public int Id { get; set; }
 
         [DataMember]
-        public string UserName { get; set; }
+        public string UserName { get; set; } = "";
 
         [DataMember]
-        public string Email { get; set; }
+        public string Email { get; set; } = "";
 
         [DataMember]
-        public byte[] PasswordHash { get; set; }
+        public byte[] PasswordHash { get; set; } = new byte[0];
 
         [DataMember]
         public string? Bio { get; set; }

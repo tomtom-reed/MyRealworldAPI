@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+  realworldweb:
+    image: ${DOCKER_REGISTRY-}realworldweb
+    build:
+      context: .
+      dockerfile: RealworldWeb/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Connections__WebHost='http://localhost:50555'
+    depends_on:
+      - realworldwebhost
+    ports:
+      - "50022:50022"
+
+  realworldwebhost:
+    image: ${DOCKER_REGISTRY-}realworldwebhost
+    build:
+      context: .
+      dockerfile: RealworldWebHost/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Datasource__Url='host.docker.internal\\SQLEXPRESS'
+      - Datasource__UserID='qadb'
+      - Datasource__Password='Password123'
+      - Datasource__Catalog='RealworldDB'
+    ports:
+      - "50555:50555"

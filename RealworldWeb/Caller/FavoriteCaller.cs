@@ -27,11 +27,18 @@ namespace RealworldWeb.Caller
             body.Contract = request;
             req.AddBody(body);
 
-            var res = await client.PostAsync<ArticleGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Favorite Success");
-                return res.Article;
+                var res = await client.PostAsync<ArticleGetResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Favorite Success");
+                    return res.Article;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Favorite failed: " + e.Message);
             }
             Console.WriteLine("Favorite failed");
             return null;
@@ -44,11 +51,18 @@ namespace RealworldWeb.Caller
             body.Contract = request;
             req.AddBody(body);
 
-            var res = await client.PostAsync<ArticleGetResponse>(req);
-            if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+            try
             {
-                Console.WriteLine("Unfavorite Success");
-                return res.Article;
+                var res = await client.PostAsync<ArticleGetResponse>(req);
+                if (res != null && (res.Error == null || res.Error.ErrorCode == CALLER_ERR_CD.SUCCESS))
+                {
+                    Console.WriteLine("Unfavorite Success");
+                    return res.Article;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unfavorite failed: " + e.Message);
             }
             Console.WriteLine("Unfavorite failed");
             return null;
